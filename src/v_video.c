@@ -794,7 +794,10 @@ V_DrawLine_f V_DrawLine = NULL_DrawLine;
 // V_InitMode
 //
 void V_InitMode(video_mode_t mode) {
-
+#ifndef GL_DOOM
+  if (mode == VID_MODEGL)
+    mode = VID_MODE8;
+#endif
   switch (mode) {
     case VID_MODE8:
       lprintf(LO_INFO, "V_InitMode: using 8 bit video mode\n");
@@ -806,7 +809,7 @@ void V_InitMode(video_mode_t mode) {
       V_DrawLine = WRAP_V_DrawLine;
       current_videomode = VID_MODE8;
       break;
-    default:
+    case VID_MODE15:
       lprintf(LO_INFO, "V_InitMode: using 15 bit video mode\n");
       V_CopyRect = FUNC_V_CopyRect;
       V_FillRect = V_FillRect15;
@@ -816,6 +819,38 @@ void V_InitMode(video_mode_t mode) {
       V_DrawLine = WRAP_V_DrawLine;
       current_videomode = VID_MODE15;
       break;
+    case VID_MODE16:
+      lprintf(LO_INFO, "V_InitMode: using 16 bit video mode\n");
+      V_CopyRect = FUNC_V_CopyRect;
+      V_FillRect = V_FillRect16;
+      V_DrawNumPatch = FUNC_V_DrawNumPatch;
+      V_DrawBackground = FUNC_V_DrawBackground;
+      V_PlotPixel = V_PlotPixel16;
+      V_DrawLine = WRAP_V_DrawLine;
+      current_videomode = VID_MODE16;
+      break;
+    case VID_MODE32:
+      lprintf(LO_INFO, "V_InitMode: using 32 bit video mode\n");
+      V_CopyRect = FUNC_V_CopyRect;
+      V_FillRect = V_FillRect32;
+      V_DrawNumPatch = FUNC_V_DrawNumPatch;
+      V_DrawBackground = FUNC_V_DrawBackground;
+      V_PlotPixel = V_PlotPixel32;
+      V_DrawLine = WRAP_V_DrawLine;
+      current_videomode = VID_MODE32;
+      break;
+#ifdef GL_DOOM
+    case VID_MODEGL:
+      lprintf(LO_INFO, "V_InitMode: using OpenGL video mode\n");
+      V_CopyRect = WRAP_gld_CopyRect;
+      V_FillRect = WRAP_gld_FillRect;
+      V_DrawNumPatch = WRAP_gld_DrawNumPatch;
+      V_DrawBackground = WRAP_gld_DrawBackground;
+      V_PlotPixel = V_PlotPixelGL;
+      V_DrawLine = WRAP_gld_DrawLine;
+      current_videomode = VID_MODEGL;
+      break;
+#endif
   }
   R_FilterInit();
 }

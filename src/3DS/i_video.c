@@ -377,30 +377,6 @@ void I_InitGraphics(void)
   }
 }
 
-int I_GetModeFromString(const char *modestr)
-{
-  video_mode_t mode;
-
-  if (!stricmp(modestr,"15")) {
-    mode = VID_MODE15;
-  } else if (!stricmp(modestr,"15bit")) {
-    mode = VID_MODE15;
-  } else if (!stricmp(modestr,"16")) {
-    mode = VID_MODE16;
-  } else if (!stricmp(modestr,"16bit")) {
-    mode = VID_MODE16;
-  } else if (!stricmp(modestr,"32")) {
-    mode = VID_MODE32;
-  } else if (!stricmp(modestr,"32bit")) {
-    mode = VID_MODE32;
-  } else if (!stricmp(modestr,"gl")) {
-    mode = VID_MODEGL;
-  } else {
-    mode = VID_MODE8;
-  }
-  return mode;
-}
-
 void I_UpdateVideoMode(void)
 {
   int init_flags;
@@ -409,14 +385,8 @@ void I_UpdateVideoMode(void)
 
   lprintf(LO_INFO, "I_UpdateVideoMode: %dx%d (%s)\n", SCREENWIDTH, SCREENHEIGHT, desired_fullscreen ? "fullscreen" : "nofullscreen");
 
-  /* TODO for 3DS 
-  mode = I_GetModeFromString(default_videomode);
-  if ((i=M_CheckParm("-vidmode")) && i<myargc-1) {
-    mode = I_GetModeFromString(myargv[i+1]);
-  }
-  */
   mode = VID_MODE8;
-  // gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB5_A1_OES);
+  gfxSetScreenFormat(GFX_BOTTOM, GSP_BGR8_OES);
   
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();
