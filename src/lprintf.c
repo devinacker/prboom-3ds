@@ -121,7 +121,7 @@ void I_Error(const char *error, ...)
   
   Init_ConsoleWin();
   lprintf(LO_ERROR, "%s\n", errmsg);
-  lprintf(LO_ERROR, "press any button to quit");
+  lprintf(LO_ERROR, "press any button to quit\n");
   while (hidScanInput(), !hidKeysDown());
   
   I_SafeExit(-1);

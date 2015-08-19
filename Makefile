@@ -46,6 +46,10 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+# enable MBF helper dogs
+CFLAGS  +=  -DDOGS
+# not currently used
+CFLAGS  +=  -DDOOMWADDIR
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 

@@ -7,13 +7,6 @@
    (this is EXTREMELY slow). */
 /* #undef CHECKHEAP */
 
-/* Define for support for MBF helper dogs */
-#define DOGS 1
-
-/* Define to be the path where Doom WADs are stored
-   TODO for 3DS */
-#define DOOMWADDIR 
-
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #define HAVE_DECL_SYS_SIGLIST 1

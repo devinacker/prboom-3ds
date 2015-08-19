@@ -32,10 +32,6 @@
  *-----------------------------------------------------------------------------
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -285,8 +281,9 @@ void I_FinishUpdate (void)
 		newpal = NO_PALETTE_CHANGE;
 	}
   
-	gfxSwapBuffers();
 	/* TODO for 3DS */
+	
+	gfxSwapBuffers();
 	gspWaitForVBlank();
 }
 
@@ -416,8 +413,8 @@ void I_UpdateVideoMode(void)
     mode = I_GetModeFromString(myargv[i+1]);
   }
   */
-  mode = VID_MODE15;
-  //gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB5_A1_OES);
+  mode = VID_MODE8;
+  // gfxSetScreenFormat(GFX_BOTTOM, GSP_RGB5_A1_OES);
   
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();
