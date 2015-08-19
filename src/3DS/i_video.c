@@ -189,16 +189,16 @@ inline static boolean I_SkipFrame(void)
 ///////////////////////////////////////////////////////////
 // Palette stuff.
 //
+
+// Array of color structs used for setting the 256-colour palette
+typedef struct { char r, g, b; } colour_t;
+static colour_t *colours = NULL;
+static colour_t *current_pal;
+
 static void I_UploadNewPalette(int pal)
 {
-
-/* TODO for 3DS */
-#if 0
   // This is used to replace the current 256 colour cmap with a new one
   // Used by 256 colour PseudoColor modes
-
-  // Array of SDL_Color structs used for setting the 256-colour palette
-  static SDL_Color* colours;
   static int cachedgamma;
   static size_t num_pals;
 
@@ -239,13 +239,7 @@ static void I_UploadNewPalette(int pal)
       pal, num_pals);
 #endif
 
-  // store the colors to the current display
-  // SDL_SetColors(SDL_GetVideoSurface(), colours+256*pal, 0, 256);
-  SDL_SetPalette(
-      SDL_GetVideoSurface(),
-      SDL_LOGPAL | SDL_PHYSPAL,
-      colours+256*pal, 0, 256);
-#endif
+  current_pal = colours + pal*256;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -253,6 +247,7 @@ static void I_UploadNewPalette(int pal)
 
 void I_ShutdownGraphics(void)
 {
+	free(colours);
 }
 
 //
@@ -272,9 +267,24 @@ void I_FinishUpdate (void)
 {
   if (I_SkipFrame()) return;
 
-  /* TODO for 3DS
-	...
-	*/
+	// this is really hacky and obviously doesn't account for the possibility of
+	// different color depths, etc.
+	uint16_t width, height;
+	char *fb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
+	uint16_t x, y;
+	// do palette lookups and rotate image 90' into the framebuffer here
+	char *src = screens[0].data;
+	
+	for (x = 0; x < width; x++) {
+		for (y = 0; y < height; y++) {
+			char *dest = fb + ((y * width + (width - x - 1)) * 3);
+			char px = *src++;
+			
+			*dest++ = current_pal[px].b;
+			*dest++ = current_pal[px].g;
+			*dest++ = current_pal[px].r;
+		}
+	}
 	
 	/* Update the display buffer (flipping video pages if supported)
 	 * If we need to change palette, that implicitely does a flip */
@@ -282,8 +292,6 @@ void I_FinishUpdate (void)
 		I_UploadNewPalette(newpal);
 		newpal = NO_PALETTE_CHANGE;
 	}
-  
-	/* TODO for 3DS */
 	
 	gfxSwapBuffers();
 	gspWaitForVBlank();
@@ -372,6 +380,9 @@ void I_InitGraphics(void)
     /* Set the video mode */
     I_UpdateVideoMode();
 
+	/* Initialize palette */
+	I_UploadNewPalette(0);
+
     /* Initialize the input system */
     I_InitInputs();
   }
@@ -385,8 +396,8 @@ void I_UpdateVideoMode(void)
 
   lprintf(LO_INFO, "I_UpdateVideoMode: %dx%d (%s)\n", SCREENWIDTH, SCREENHEIGHT, desired_fullscreen ? "fullscreen" : "nofullscreen");
 
+  // For now, use 8-bit rendering but default 24-bit framebuffer
   mode = VID_MODE8;
-  gfxSetScreenFormat(GFX_BOTTOM, GSP_BGR8_OES);
   
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();
