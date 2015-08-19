@@ -57,7 +57,7 @@ int usejoystick;
 void I_PollJoystick(void) {
 	/* TODO for 3DS */
 	// currently kill the program on any button press
-	if (hidScanInput(), hidKeysDown() & KEY_START)
+	if (hidKeysDown())
 		I_SafeExit(0);
 }
 

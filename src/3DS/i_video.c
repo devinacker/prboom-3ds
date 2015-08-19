@@ -143,6 +143,8 @@ void I_StartTic (void)
   while ( SDL_PollEvent(&Event) )
     I_GetEvent(&Event);
   */
+  hidScanInput();
+  
   I_PollJoystick();
 }
 
