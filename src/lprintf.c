@@ -57,16 +57,21 @@ int cons_output_mask = -1;        /* all output enabled */
  * We still have to be careful here, this function can be called after exit
  */
 #define MAX_MESSAGE_SIZE 2048
+int showconsole = 0;
 
 int Init_ConsoleWin(void)
 {
-	static int done = 0;
-
-	if (!done) {
-		done = 1;
+	if (!showconsole) {
+		showconsole = 1;
 		consoleInit(GFX_TOP, 0);
+		consoleDebugInit(debugDevice_3DMOO);
 	}
 	return 1;
+}
+
+void Done_ConsoleWin(void)
+{
+	showconsole = 0;
 }
 
 int lprintf(OutputLevels pri, const char *s, ...)
@@ -84,16 +89,15 @@ int lprintf(OutputLevels pri, const char *s, ...)
 #endif
   va_end(v);
 
-  if (lvl&cons_output_mask)               /* mask output as specified */
+  if (showconsole && lvl&cons_output_mask)               /* mask output as specified */
   {
     r=fprintf(stdout,"%s",msg);
 #ifdef _WIN32
     I_ConPrintString(msg);
 #endif
   }
-  /* TODO for 3DS: send stderr somewhere else */
-  // if (!isatty(1) && lvl&cons_error_mask)  /* if stdout redirected     */
-  //  r=fprintf(stderr,"%s",msg);           /* select output at console */
+  if (lvl&cons_error_mask)
+    r=fprintf(stderr,"%s",msg);           /* select output at console */
 
   return r;
 }

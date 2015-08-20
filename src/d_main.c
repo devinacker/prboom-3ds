@@ -1460,7 +1460,6 @@ static void D_DoomMainSetup(void)
         }
     }
   // ty 03/09/98 end of do dehacked stuff
-  lprintf(LO_INFO, "D_Main: finished loading dehacked\n");
   
   // add any files specified on the command line with -file wadfile
   // to the wad list

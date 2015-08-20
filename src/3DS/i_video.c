@@ -139,10 +139,6 @@ static void I_GetEvent(SDL_Event *Event)
 
 void I_StartTic (void)
 {
-  /* TODO for 3DS
-  while ( SDL_PollEvent(&Event) )
-    I_GetEvent(&Event);
-  */
   hidScanInput();
   
   I_PollJoystick();
@@ -153,6 +149,8 @@ void I_StartTic (void)
 //
 void I_StartFrame (void)
 {
+  // TODO: keep the automap enabled
+  // automapmode |= am_active;
 }
 
 //
@@ -258,6 +256,58 @@ void I_UpdateNoBlit (void)
 }
 
 //
+// I_TranslateFrameBuffer
+//
+// TODO: allow copying partial screens (for top screen borders)
+void I_TranslateFrameBuffer(unsigned scrn, gfxScreen_t scrndest, gfx3dSide_t side, int xoff) {
+	
+	if (scrn >= NUM_SCREENS)
+		I_Error("I_TranslateFrameBuffer: invalid screen number %u", scrn);
+	
+	// this is really hacky and obviously doesn't account for the possibility of
+	// different color depths, etc.
+	uint16_t width, height;
+	char *fb = gfxGetFramebuffer(scrndest, side, &width, &height);
+	
+	// remember that the 3DS framebuffer is rotated 90'
+	if (width != screens[scrn].height)
+		I_Error("I_TranslateFrameBuffer: screen height mismatch (%u != %u)", width, screens[scrn].height);
+	
+	// center screen horizontally
+	if (xoff < 0) {
+		xoff = (height - screens[scrn].width) / 2;
+	}
+	
+	if (xoff > height - screens[scrn].width)
+		I_Error("I_TranslateFrameBuffer: bad x-offset (%d > %u)", xoff, height - screens[scrn].width);
+		
+	uint16_t x, y;
+	// do palette lookups and rotate image 90' into the framebuffer here
+	char *src = screens[scrn].data;
+	
+	for (x = 0; x < width; x++) {
+		for (y = xoff; y < screens[scrn].width + xoff; y++) {
+			char *dest = fb + ((y * width + (width - x - 1)) * 3);
+			char px = *src++;
+			
+			*dest++ = current_pal[px].b;
+			*dest++ = current_pal[px].g;
+			*dest++ = current_pal[px].r;
+		}
+	}
+}
+
+//
+// I_ClearFrameBuffer
+//
+void I_ClearFrameBuffer(gfxScreen_t scrndest, gfx3dSide_t side) {
+	uint16_t width, height;
+	char *fb = gfxGetFramebuffer(scrndest, side, &width, &height);
+	// assume 3 bytes/pixel
+	memset(fb, 0, width * height * 3);
+}
+
+//
 // I_FinishUpdate
 //
 static int newpal = 0;
@@ -267,24 +317,11 @@ void I_FinishUpdate (void)
 {
   if (I_SkipFrame()) return;
 
-	// this is really hacky and obviously doesn't account for the possibility of
-	// different color depths, etc.
-	uint16_t width, height;
-	char *fb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-	uint16_t x, y;
-	// do palette lookups and rotate image 90' into the framebuffer here
-	char *src = screens[0].data;
-	
-	for (x = 0; x < width; x++) {
-		for (y = 0; y < height; y++) {
-			char *dest = fb + ((y * width + (width - x - 1)) * 3);
-			char px = *src++;
-			
-			*dest++ = current_pal[px].b;
-			*dest++ = current_pal[px].g;
-			*dest++ = current_pal[px].r;
-		}
-	}
+	// TODO: use enums for screen numbers and apply them where appropriate
+	// main game on top screen (TODO: both sides)
+	I_TranslateFrameBuffer(0, GFX_TOP, GFX_LEFT, -1);
+	// TODO: automap on bottom screen
+	// I_TranslateFrameBuffer(0, GFX_BOTTOM, 0, -1);
 	
 	/* Update the display buffer (flipping video pages if supported)
 	 * If we need to change palette, that implicitely does a flip */
@@ -293,6 +330,7 @@ void I_FinishUpdate (void)
 		newpal = NO_PALETTE_CHANGE;
 	}
 	
+	gfxFlushBuffers();
 	gfxSwapBuffers();
 	gspWaitForVBlank();
 }
@@ -399,15 +437,20 @@ void I_UpdateVideoMode(void)
   // For now, use 8-bit rendering but default 24-bit framebuffer
   mode = VID_MODE8;
   
+  // reset video modes
+  gfxExit();
+  // disable console
+  Done_ConsoleWin();
+  gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
+  I_ClearFrameBuffer(GFX_TOP, GFX_LEFT);
+  I_ClearFrameBuffer(GFX_TOP, GFX_RIGHT);
+  I_ClearFrameBuffer(GFX_BOTTOM, 0);
+  
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();
   V_FreeScreens();
 
   I_SetRes();
-
-  /* TODO for 3DS */
-  // Get the info needed to render to the display
-  screens[0].not_on_heap = false;
   
   V_AllocScreens();
 

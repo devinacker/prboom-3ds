@@ -265,24 +265,11 @@ int main(int argc, char **argv)
      The old code called I_Quit() to end program,
      while now I_Quit() is installed as an exit
      handler and exit() is called to exit, either
-     normally or abnormally. Seg faults are caught
-     and the error handler is used, to prevent
-     being left in graphics mode or having very
-     loud SFX noise because the sound card is
-     left in an unstable state.
+     normally or abnormally. 
   */
 
   Z_Init();                  /* 1/18/98 killough: start up memory stuff first */
-
   atexit(I_Quit);
-#ifndef _DEBUG
-  signal(SIGSEGV, I_SignalHandler);
-  signal(SIGTERM, I_SignalHandler);
-  signal(SIGFPE,  I_SignalHandler);
-  signal(SIGILL,  I_SignalHandler);
-  signal(SIGINT,  I_SignalHandler);  /* killough 3/6/98: allow CTRL-BRK during init */
-  signal(SIGABRT, I_SignalHandler);
-#endif
 
   I_SetAffinityMask();
 
