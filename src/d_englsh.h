@@ -42,7 +42,7 @@
 
 /* m_menu.c */
 #define PRESSKEY    "press a button."
-#define PRESSYN     "press a (yes) or b (no)."
+#define PRESSYN     "press a to confirm."
 #define QUITMSG     "are you sure you want to\nquit this great game?"
 #define LOADNET     "you can't do load while in a net game!\n\n"PRESSKEY
 #define QLOADNET    "you can't quickload during a netgame!\n\n"PRESSKEY
