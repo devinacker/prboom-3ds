@@ -69,6 +69,7 @@ int             leds_always_off = 0; // Expected by m_misc, not relevant
 
 // Mouse handling
 extern int     usemouse;        // config file var
+extern int     usejoystick;
 static boolean mouse_enabled; // usemouse, but can be overriden by -nomouse
 static boolean mouse_currently_grabbed;
 
@@ -78,60 +79,90 @@ static boolean mouse_currently_grabbed;
 /////////////////////////////////////////////////////////////////////////////////
 // Main input code
 
-/* cph - pulled out common button code logic */
+//
+//  Translates the key currently in key
+//
 
-/* TODO for 3DS */
-#if 0
-static void I_GetEvent(SDL_Event *Event)
+static int I_TranslateKey(uint32_t key)
 {
-  event_t event;
+  int rc = 0;
 
-  switch (Event->type) {
-  case SDL_KEYDOWN:
-    event.type = ev_keydown;
-    event.data1 = I_TranslateKey(&Event->key.keysym);
-    D_PostEvent(&event);
-    break;
-
-  case SDL_KEYUP:
-  {
-    event.type = ev_keyup;
-    event.data1 = I_TranslateKey(&Event->key.keysym);
-    D_PostEvent(&event);
+  switch (key) {
+  case KEY_L: rc = 'l'; break; // 'L' key
+  case KEY_R: rc = 'r'; break; // 'R' key
+  case KEY_A: rc = 'a'; break; // 'A' key
+  case KEY_B: rc = 'b'; break; // 'B' key
+  case KEY_X: rc = 'x'; break; // 'X' key
+  case KEY_Y: rc = 'y'; break; // 'Y' key
+  case KEY_SELECT: rc = KEYD_SELECT; break;
+  case KEY_START: rc = KEYD_START; break;
+  case KEY_DRIGHT: rc = KEYD_DRIGHT; break;
+  case KEY_DLEFT: rc = KEYD_DLEFT; break;
+  case KEY_DUP: rc = KEYD_DUP; break;
+  case KEY_DDOWN: rc = KEYD_DDOWN; break;
+  case KEY_ZL: rc = KEYD_ZL; break;
+  case KEY_ZR: rc = KEYD_ZR; break;
+  case KEY_TOUCH: rc = KEYD_TOUCH; break;
+  case KEY_CSTICK_RIGHT: rc = KEYD_CSTICK_RIGHT; break;
+  case KEY_CSTICK_LEFT: rc = KEYD_CSTICK_LEFT; break;
+  case KEY_CSTICK_UP: rc = KEYD_CSTICK_UP; break;
+  case KEY_CSTICK_DOWN: rc = KEYD_CSTICK_DOWN; break;
+  case KEY_CPAD_RIGHT: rc = KEYD_CPAD_RIGHT; break;
+  case KEY_CPAD_LEFT: rc = KEYD_CPAD_LEFT; break;
+  case KEY_CPAD_UP: rc = KEYD_CPAD_UP; break;
+  case KEY_CPAD_DOWN: rc = KEYD_CPAD_DOWN; break;
   }
-  break;
 
-  case SDL_MOUSEBUTTONDOWN:
-  case SDL_MOUSEBUTTONUP:
-  if (mouse_enabled) // recognise clicks even if the pointer isn't grabbed
-  {
-    event.type = ev_mouse;
-    event.data1 = I_SDLtoDoomMouseState(SDL_GetMouseState(NULL, NULL));
-    event.data2 = event.data3 = 0;
-    D_PostEvent(&event);
-  }
-  break;
+  return rc;
 
-  case SDL_MOUSEMOTION:
-  if (mouse_currently_grabbed) {
-    event.type = ev_mouse;
-    event.data1 = I_SDLtoDoomMouseState(Event->motion.state);
-    event.data2 = Event->motion.xrel << 5;
-    event.data3 = -Event->motion.yrel << 5;
-    D_PostEvent(&event);
-  }
-  break;
-
-
-  case SDL_QUIT:
-    S_StartSound(NULL, sfx_swtchn);
-    M_QuitDOOM(0);
-
-  default:
-    break;
-  }
 }
-#endif // 0
+
+static void I_GetInput() {
+	event_t event;
+	event.data2 = event.data3 = 0;
+	
+	uint32_t down = hidKeysDown();
+	uint32_t held = hidKeysHeld();
+	uint32_t up = hidKeysUp();
+
+	// iterate over other possible key values
+	int i;
+	for (i = 0; i < (usejoystick ? 28 : 32); i++) { // upper 4 bits (c-pad) may be treated as a joystick
+		uint32_t key = 1<<i;
+		
+		if (down & key) {
+			event.data1 = I_TranslateKey(key);
+			event.type = ev_keydown;
+			D_PostEvent(&event);
+		} else if (up & key) {
+			event.data1 = I_TranslateKey(key);
+			event.type = ev_keyup;
+			D_PostEvent(&event);
+		}
+	}
+
+	// handle touch pad movement
+	if (usemouse) {
+		static int px = 0;
+		static int py = 0;
+		touchPosition touch;
+		hidTouchRead(&touch);
+		if (down & KEY_TOUCH) {
+			px = touch.px;
+			py = touch.py;
+			
+		} else if (held & KEY_TOUCH && (touch.px != px || touch.py != py)) {
+			event.type = ev_mouse;
+			event.data1 = 0;
+			event.data2 = (touch.px - px) << 5;
+			event.data3 = -(touch.py - py) << 5;
+			D_PostEvent(&event);
+			
+			px = touch.px;
+			py = touch.py;
+		}
+	}
+}
 
 //
 // I_StartTic
@@ -140,7 +171,7 @@ static void I_GetEvent(SDL_Event *Event)
 void I_StartTic (void)
 {
   hidScanInput();
-  
+  I_GetInput();
   I_PollJoystick();
 }
 
@@ -440,11 +471,11 @@ void I_UpdateVideoMode(void)
   // reset video modes
   gfxExit();
   // disable console
-  Done_ConsoleWin();
-  gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
+  // Done_ConsoleWin();
+  // gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
   I_ClearFrameBuffer(GFX_TOP, GFX_LEFT);
   I_ClearFrameBuffer(GFX_TOP, GFX_RIGHT);
-  I_ClearFrameBuffer(GFX_BOTTOM, 0);
+  // I_ClearFrameBuffer(GFX_BOTTOM, 0);
   
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();

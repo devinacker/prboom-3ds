@@ -126,9 +126,6 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT  1
 
-#define key_alt KEYD_RALT
-#define key_shift KEYD_RSHIFT
-
 const char* chat_macros[] =
 // Ty 03/27/98 - *not* externalized
 // CPhipps - const char*
@@ -1363,7 +1360,7 @@ void HU_Ticker(void)
           if (c >= 'a' && c <= 'z')
             c = (char) shiftxform[(unsigned char) c];
           rc = HUlib_keyInIText(&w_inputbuffer[i], c);
-          if (rc && c == KEYD_ENTER)
+          if (rc && c == '\r')
           {
             if (w_inputbuffer[i].l.len
                 && (chat_dest[i] == consoleplayer+1
@@ -1448,6 +1445,9 @@ char HU_dequeueChatChar(void)
 //
 boolean HU_Responder(event_t *ev)
 {
+  /* TODO for 3DS */
+  return false;
+#if 0
 
   static char   lastmessage[HU_MAXLINELENGTH+1];
   const char*   macromessage; // CPhipps - const char*
@@ -1464,17 +1464,7 @@ boolean HU_Responder(event_t *ev)
   for (i=0 ; i<MAXPLAYERS ; i++)
     numplayers += playeringame[i];
 
-  if (ev->data1 == key_shift)
-  {
-    shiftdown = ev->type == ev_keydown;
-    return false;
-  }
-  else if (ev->data1 == key_alt)
-  {
-    altdown = ev->type == ev_keydown;
-    return false;
-  }
-  else if (ev->data1 == key_backspace)
+  if (ev->data1 == key_backspace)
   {
     bsdown = ev->type == ev_keydown;
     bscounter = 0;
@@ -1590,4 +1580,5 @@ boolean HU_Responder(event_t *ev)
     }
   }
   return eatkey;
+#endif
 }

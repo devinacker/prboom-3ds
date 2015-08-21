@@ -63,7 +63,7 @@ int Init_ConsoleWin(void)
 {
 	if (!showconsole) {
 		showconsole = 1;
-		consoleInit(GFX_TOP, 0);
+		consoleInit(GFX_BOTTOM, 0);
 		consoleDebugInit(debugDevice_3DMOO);
 	}
 	return 1;

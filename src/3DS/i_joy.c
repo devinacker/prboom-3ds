@@ -27,7 +27,7 @@
  *  02111-1307, USA.
  *
  * DESCRIPTION:
- *   Joystick handling for Linux
+ *   Joystick handling for 3DS
  *
  *-----------------------------------------------------------------------------
  */
@@ -55,12 +55,21 @@ int joydown;
 int usejoystick;
 
 void I_PollJoystick(void) {
-	/* TODO for 3DS */
-	// currently kill the program on any button press
-	if (hidKeysDown())
-		I_SafeExit(0);
+	event_t ev;
+	circlePosition pos;
+	
+	if (!usejoystick) return;
+	hidCircleRead(&pos);
+	
+	ev.type = ev_joystick;
+	ev.data1 = 0;
+	ev.data2 = pos.dx;
+	if (abs(ev.data2) < 50) ev.data2 = 0;
+	ev.data3 = -pos.dy;
+	if (abs(ev.data3) < 50) ev.data3 = 0;
+	
+	D_PostEvent(&ev);
 }
 
 void I_InitJoystick(void) {
-
 }

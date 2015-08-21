@@ -610,7 +610,7 @@ void M_DrawNewGame(void)
 /* cph - make `New Game' restart the level in a netgame */
 static void M_RestartLevelResponse(int ch)
 {
-  if (ch != 'y')
+  if (ch != 'a')
     return;
 
   if (demorecording)
@@ -647,7 +647,7 @@ void M_NewGame(int choice)
 // CPhipps - static
 static void M_VerifyNightmare(int ch)
 {
-  if (ch != 'y')
+  if (ch != 'a')
     return;
 
   G_DeferedInitNew(nightmare,epi+1,1);
@@ -768,7 +768,7 @@ void M_LoadSelect(int choice)
 
 static void M_VerifyForcedLoadGame(int ch)
 {
-  if (ch=='y')
+  if (ch=='a')
     G_ForcedLoadGame();
   free((char*)messageString);       // free the message strdup()'ed below
   M_ClearMenus();
@@ -1030,7 +1030,7 @@ int quitsounds2[8] =
 
 static void M_QuitResponse(int ch)
 {
-  if (ch != 'y')
+  if (ch != 'a')
     return;
   if ((!netgame || demoplayback) // killough 12/98
       && !nosfxparm && snd_card) // avoid delay if no sound card
@@ -1271,7 +1271,7 @@ char tempstring[80];
 
 static void M_QuickSaveResponse(int ch)
 {
-  if (ch == 'y')  {
+  if (ch == 'a')  {
     M_DoSave(quickSaveSlot);
     S_StartSound(NULL,sfx_swtchx);
   }
@@ -1305,7 +1305,7 @@ void M_QuickSave(void)
 
 static void M_QuickLoadResponse(int ch)
 {
-  if (ch == 'y') {
+  if (ch == 'a') {
     M_LoadSelect(quickSaveSlot);
     S_StartSound(NULL,sfx_swtchx);
   }
@@ -1337,7 +1337,7 @@ void M_QuickLoad(void)
 
 static void M_EndGameResponse(int ch)
 {
-  if (ch != 'y')
+  if (ch != 'a')
     return;
 
   // killough 5/26/98: make endgame quit if recording or playing back demo
@@ -1507,7 +1507,9 @@ menuitem_t SetupMenu[]=
   {1,"M_AUTO"  ,M_Automap,    'a'},
   {1,"M_ENEM"  ,M_Enemy,      'e'},
   {1,"M_MESS"  ,M_Messages,   'm'},
+/*
   {1,"M_CHAT"  ,M_ChatStrings,'c'},
+*/
 };
 
 /////////////////////////////
@@ -1823,27 +1825,8 @@ static void M_DrawSetting(const setup_menu_t* s)
     int *key = s->var.m_key;
 
     // Draw the key bound to the action
-
     if (key) {
       M_GetKeyString(*key,0); // string to display
-      if (key == &key_use) {
-  // For the 'use' key, you have to build the string
-
-  if (s->m_mouse)
-    sprintf(menu_buffer+strlen(menu_buffer), "/DBL-CLK MB%d",*s->m_mouse+1);
-  if (s->m_joy)
-    sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d",*s->m_joy+1);
-      }
-      else if (key == &key_up   || key == &key_speed ||
-         key == &key_fire || key == &key_strafe)
-  {
-    if (s->m_mouse)
-      sprintf(menu_buffer+strlen(menu_buffer), "/MB%d",
-        *s->m_mouse+1);
-    if (s->m_joy)
-      sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d",
-        *s->m_joy+1);
-  }
       M_DrawMenuString(x,y,color);
     }
     return;
@@ -2017,7 +2000,7 @@ static void M_DrawDefVerify(void)
   // cursor skull.
 
   if (whichSkull) { // blink the text
-    strcpy(menu_buffer,"Reset to defaults? (Y or N)");
+    strcpy(menu_buffer,"Reset to defaults? (A = yes)");
     M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
   }
 }
@@ -2050,25 +2033,25 @@ static void M_DrawInstructions(void)
         break;
 
     case S_YESNO:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Press ENTER key to toggle");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Press A button to toggle");
       break;
     case S_WEAP:
       M_DrawStringCentered(160, 20, CR_SELECT, "Enter weapon number");
       break;
     case S_NUM:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Enter value. Press ENTER when finished.");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Enter value. Press A when finished.");
       break;
     case S_COLOR:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Select color and press enter");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Select color and press A");
       break;
     case S_CRITEM:
       M_DrawStringCentered(160, 20, CR_SELECT, "Enter value");
       break;
     case S_CHAT:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit chat string and Press ENTER");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit chat string and Press A");
       break;
     case S_FILE:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit filename and Press ENTER");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit filename and Press A");
       break;
     case S_CHOICE: 
       M_DrawStringCentered(160, 20, CR_SELECT, "Press left or right to choose");
@@ -2082,9 +2065,9 @@ static void M_DrawInstructions(void)
     }
   } else {
     if (flags & S_RESET)
-      M_DrawStringCentered(160, 20, CR_HILITE, "Press ENTER key to reset to defaults");
+      M_DrawStringCentered(160, 20, CR_HILITE, "Press A button to reset to defaults");
     else
-      M_DrawStringCentered(160, 20, CR_HILITE, "Press Enter to Change");
+      M_DrawStringCentered(160, 20, CR_HILITE, "Press A to Change");
   }
 }
 
@@ -2240,6 +2223,8 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
 setup_menu_t keys_settings3[] =  // Key Binding screen strings
 {
   {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  
+  /*
   {"FIST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+ 1*8,{&key_weapon1}},
   {"PISTOL"  ,S_KEY       ,m_scrn,KB_X,KB_Y+ 2*8,{&key_weapon2}},
   {"SHOTGUN" ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,{&key_weapon3}},
@@ -2249,6 +2234,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"BFG",     S_KEY       ,m_scrn,KB_X,KB_Y+ 7*8,{&key_weapon7}},
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
+  */
+  
+  /* TODO for 3DS: prev / next weapon keys */
+  
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
   {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
 
@@ -2276,6 +2265,7 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"FULL/ZOOM"  ,S_KEY       ,m_map ,KB_X,KB_Y+10*8,{&key_map_gobig}},
   {"GRID"       ,S_KEY       ,m_map ,KB_X,KB_Y+11*8,{&key_map_grid}},
 
+  /* TODO for 3DS
   {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
   {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_chat}},
   {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+14*8,{&destination_keys[0]}},
@@ -2284,7 +2274,7 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+17*8,{&destination_keys[3]}},
   {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+18*8,{&key_backspace}},
   {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+19*8,{&key_enter}},
-
+  */
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
 
   // Final entry
@@ -2975,12 +2965,13 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Input Devices"     ,S_SKIP|S_TITLE, m_null, G_X, G_YB - 12},
 
-  {"Enable Mouse", S_YESNO, m_null, G_X,
+  {"Use Touchpad as Mouse", S_YESNO, m_null, G_X,
    G_YB + general_mouse*8, {"use_mouse"}},
 
-  {"Enable Joystick", S_YESNO, m_null, G_X,
+  {"Use Circle Pad as Joystick", S_YESNO, m_null, G_X,
    G_YB + general_joy*8, {"use_joystick"}},
 
+  /* TODO for 3DS
   {"Files Preloaded at Game Startup",S_SKIP|S_TITLE, m_null, G_X,
    G_YB1 - 12},
 
@@ -2991,7 +2982,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"DEH/BEX # 1", S_FILE, m_null, GF_X, G_YB1 + general_deh1*8, {"dehfile_1"}},
 
   {"DEH/BEX #2", S_FILE, m_null, GF_X, G_YB1 + general_deh2*8, {"dehfile_2"}},
-
+  */
+  
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_YB2 - 12},
 
   {"Maximum number of player corpses", S_NUM|S_PRGWARN, m_null, G_X,
@@ -3800,55 +3792,30 @@ int M_GetKeyString(int c,int offset)
 
     // Retrieve 4-letter (max) string representing the key
 
-    // cph - Keypad keys, general code reorganisation to
-    //  make this smaller and neater.
-    if ((0x100 <= c) && (c < 0x200)) {
-      if (c == KEYD_KEYPADENTER)
-  s = "PADE";
-      else {
-  strcpy(&menu_buffer[offset], "PAD");
-  offset+=4;
-  menu_buffer[offset-1] = c & 0xff;
-  menu_buffer[offset] = 0;
-      }
-    } else if ((KEYD_F1 <= c) && (c < KEYD_F10)) {
-      menu_buffer[offset++] = 'F';
-      menu_buffer[offset++] = '1' + c - KEYD_F1;
-      menu_buffer[offset]   = 0;
-    } else {
-      switch(c) {
-      case KEYD_TAB:      s = "TAB";  break;
-      case KEYD_ENTER:      s = "ENTR"; break;
-      case KEYD_ESCAPE:     s = "ESC";  break;
-      case KEYD_SPACEBAR:   s = "SPAC"; break;
-      case KEYD_BACKSPACE:  s = "BACK"; break;
-      case KEYD_RCTRL:      s = "CTRL"; break;
-      case KEYD_LEFTARROW:  s = "LARR"; break;
-      case KEYD_UPARROW:    s = "UARR"; break;
-      case KEYD_RIGHTARROW: s = "RARR"; break;
-      case KEYD_DOWNARROW:  s = "DARR"; break;
-      case KEYD_RSHIFT:     s = "SHFT"; break;
-      case KEYD_RALT:       s = "ALT";  break;
-      case KEYD_CAPSLOCK:   s = "CAPS"; break;
-      case KEYD_SCROLLLOCK: s = "SCRL"; break;
-      case KEYD_HOME:       s = "HOME"; break;
-      case KEYD_PAGEUP:     s = "PGUP"; break;
-      case KEYD_END:        s = "END";  break;
-      case KEYD_PAGEDOWN:   s = "PGDN"; break;
-      case KEYD_INSERT:     s = "INST"; break;
-      case KEYD_DEL:        s = "DEL"; break;
-      case KEYD_F10:        s = "F10";  break;
-      case KEYD_F11:        s = "F11";  break;
-      case KEYD_F12:        s = "F12";  break;
-      case KEYD_PAUSE:      s = "PAUS"; break;
-      default:              s = "JUNK"; break;
-      }
-
-      if (s) { // cph - Slight code change
-  strcpy(&menu_buffer[offset],s); // string to display
-  offset += strlen(s);
-      }
+    switch(c) {
+	case KEYD_SELECT: s = "SEL"; break;
+	case KEYD_START: s = "STRT"; break;
+    case KEYD_DLEFT:  s = "D-LT"; break;
+    case KEYD_DUP:    s = "D-UP"; break;
+    case KEYD_DRIGHT: s = "D-RT"; break;
+    case KEYD_DDOWN:  s = "D-DN"; break;
+	case KEYD_CSTICK_LEFT: s = "CSLT"; break;
+	case KEYD_CSTICK_UP: s = "CSRT"; break;
+	case KEYD_CSTICK_RIGHT: s = "CSUP"; break;
+	case KEYD_CSTICK_DOWN: s = "CSDN"; break;
+	case KEYD_CPAD_LEFT: s = "C-LT"; break;
+	case KEYD_CPAD_UP: s = "C-RT"; break;
+	case KEYD_CPAD_RIGHT: s = "C-UP"; break;
+	case KEYD_CPAD_DOWN: s = "C-DN"; break;
+	case KEYD_TOUCH: s = "TPAD"; break;
+    default:              s = ""; break;
     }
+
+    if (s) { // cph - Slight code change
+	  strcpy(&menu_buffer[offset],s); // string to display
+	  offset += strlen(s);
+    }
+    
   }
   return offset;
 }
@@ -3891,6 +3858,7 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"GRID"        ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 7*8,{&key_map_grid}},
 
   {"WEAPONS"     ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y1},
+  /*
   {"FIST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 1*8,{&key_weapon1}},
   {"PISTOL"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 2*8,{&key_weapon2}},
   {"SHOTGUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 3*8,{&key_weapon3}},
@@ -3900,6 +3868,10 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"BFG 9000"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 7*8,{&key_weapon7}},
   {"CHAINSAW"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 8*8,{&key_weapon8}},
   {"SSG"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 9*8,{&key_weapon9}},
+  */
+  
+  /* TODO for 3DS: prev/next weapon keys */
+  
   {"BEST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+10*8,{&key_weapontoggle}},
   {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+11*8,{&key_fire},&mousebfire,&joybfire},
 
@@ -4154,15 +4126,9 @@ boolean M_Responder (event_t* ev) {
       // Process keyboard input
 
       if (ev->type == ev_keydown)
-        {
-        ch = ev->data1;               // phares 4/11/98:
-        if (ch == KEYD_RSHIFT)        // For chat string processing, need
-          shiftdown = true;           // to know when shift key is up or
-        }                             // down so you can get at the !,#,
-      else if (ev->type == ev_keyup)  // etc. keys. Keydowns are allowed
-        if (ev->data1 == KEYD_RSHIFT) // past this point, but keyups aren't
-          shiftdown = false;          // so we need to note the difference
-    }                                 // here using the 'shiftdown' boolean.
+        ch = ev->data1;
+        shiftdown = false;
+    }                                 
 
   if (ch == -1)
     return false; // we can't use the event here
@@ -4210,7 +4176,7 @@ boolean M_Responder (event_t* ev) {
 
   if (messageToPrint) {
     if (messageNeedsInput == true &&
-  !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape)) // phares
+  !(ch == ' ' || ch == 'b' || ch == 'a' || ch == key_escape)) // phares
       return false;
 
     menuactive = messageLastMenuActive;
@@ -4400,12 +4366,12 @@ boolean M_Responder (event_t* ev) {
 
     if (default_verify)
       {
-  if (toupper(ch) == 'Y') {
+  if (toupper(ch) == 'A') {
     M_ResetDefaults();
     default_verify = false;
     M_SelectDone(ptr1);
   }
-  else if (toupper(ch) == 'N') {
+  else if (toupper(ch) == 'B') {
     default_verify = false;
     M_SelectDone(ptr1);
   }
