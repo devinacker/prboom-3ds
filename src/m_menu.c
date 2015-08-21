@@ -2236,10 +2236,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   */
   
-  /* TODO for 3DS: prev / next weapon keys */
-  
-  {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
+  {"NEXT WEAPON"    ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_weaponcycleup}},
+  {"PREVIOUS WEAPON"    ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&key_weaponcycledown}},
+  {"BEST WEAPON"    ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&key_weapontoggle}},
+  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&key_fire},&mousebfire,&joybfire},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -2825,7 +2825,7 @@ setup_menu_t* gen_settings[] =
 enum {
   general_trans,
   general_transpct,
-  general_fullscreen,
+/*  general_fullscreen, */
   general_videomode,
 //  general_pcx,
 //  general_diskicon,
@@ -2852,8 +2852,9 @@ enum {
 #define G_YA3 (G_YA2+5*8)
 #define GF_X 76
 
-static const char *videomodes[] = {"8bit","15bit","16bit",
-                                   "32bit","OpenGL", NULL};
+/* TODO for 3DS: re-enable high color rendering */
+static const char *videomodes[] = {"8bit", /* "15bit","16bit",
+                                   "32bit","OpenGL", */ NULL};
 
 static const char *gltexfilters[] = {"GL_NEAREST","GL_LINEAR",
                                      "GL_LINEAR_MIPMAP_LINEAR",
@@ -2871,10 +2872,10 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Translucency filter percentage", S_NUM, m_null, G_X,
    G_YA + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
-
+/*
   {"Fullscreen Video mode", S_YESNO|S_PRGWARN, m_null, G_X,
    G_YA + general_fullscreen*8, {"use_fullscreen"}, 0, 0, NULL},
-
+*/
   {"Video mode", S_CHOICE|S_PRGWARN, m_null, G_X,
    G_YA + general_videomode*8, {"videomode"}, 0, 0, NULL, videomodes},
 
@@ -2968,10 +2969,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Use Touchpad as Mouse", S_YESNO, m_null, G_X,
    G_YB + general_mouse*8, {"use_mouse"}},
 
-  {"Use Circle Pad as Joystick", S_YESNO, m_null, G_X,
-   G_YB + general_joy*8, {"use_joystick"}},
-
-  /* TODO for 3DS
+  /* TODO for 3DS */
+  /*
   {"Files Preloaded at Game Startup",S_SKIP|S_TITLE, m_null, G_X,
    G_YB1 - 12},
 
@@ -2983,7 +2982,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"DEH/BEX #2", S_FILE, m_null, GF_X, G_YB1 + general_deh2*8, {"dehfile_2"}},
   */
-  
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_YB2 - 12},
 
   {"Maximum number of player corpses", S_NUM|S_PRGWARN, m_null, G_X,
@@ -3009,6 +3007,16 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {0,S_SKIP|S_END,m_null}
 };
+
+void M_ChangeDemoSmoothTurns(void)
+{
+  if (demo_smoothturns)
+    gen_settings2[6].m_flags &= ~(S_SKIP|S_SELECT);
+  else
+    gen_settings2[6].m_flags |= (S_SKIP|S_SELECT);
+
+  R_SmoothPlaying_Reset(NULL);
+}
 
 enum {
   general_filterwall,
@@ -3074,16 +3082,6 @@ void M_FullScreen(void) // To (un)set fullscreen video after menu changes
 {
   I_UpdateVideoMode();
   V_SetPalette(0);
-}
-
-void M_ChangeDemoSmoothTurns(void)
-{
-  if (demo_smoothturns)
-    gen_settings2[12].m_flags &= ~(S_SKIP|S_SELECT);
-  else
-    gen_settings2[12].m_flags |= (S_SKIP|S_SELECT);
-
-  R_SmoothPlaying_Reset(NULL);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -3804,8 +3802,8 @@ int M_GetKeyString(int c,int offset)
 	case KEYD_CSTICK_RIGHT: s = "CSUP"; break;
 	case KEYD_CSTICK_DOWN: s = "CSDN"; break;
 	case KEYD_CPAD_LEFT: s = "C-LT"; break;
-	case KEYD_CPAD_UP: s = "C-RT"; break;
-	case KEYD_CPAD_RIGHT: s = "C-UP"; break;
+	case KEYD_CPAD_UP: s = "C-UP"; break;
+	case KEYD_CPAD_RIGHT: s = "C-RT"; break;
 	case KEYD_CPAD_DOWN: s = "C-DN"; break;
 	case KEYD_TOUCH: s = "TPAD"; break;
     default:              s = ""; break;
@@ -3870,10 +3868,10 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"SSG"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 9*8,{&key_weapon9}},
   */
   
-  /* TODO for 3DS: prev/next weapon keys */
-  
-  {"BEST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+10*8,{&key_weapontoggle}},
-  {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+11*8,{&key_fire},&mousebfire,&joybfire},
+  {"NEXT WEAPON"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+1*8,{&key_weaponcycleup}},
+  {"PREVIOUS WEAPON"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+2*8,{&key_weaponcycledown}},
+  {"BEST WEAPON"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+3*8,{&key_weapontoggle}},
+  {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+4*8,{&key_fire},&mousebfire,&joybfire},
 
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y3},
   {"FORWARD"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 1*8,{&key_up},&mousebforward},

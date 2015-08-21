@@ -251,7 +251,6 @@ enum
 	KEYD_CSTICK_LEFT,
 	KEYD_CSTICK_UP,
 	KEYD_CSTICK_DOWN,
-	// used if joystick is disabled
 	KEYD_CPAD_RIGHT,
 	KEYD_CPAD_LEFT,
 	KEYD_CPAD_UP,

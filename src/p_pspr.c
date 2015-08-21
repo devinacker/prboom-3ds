@@ -211,6 +211,52 @@ int P_SwitchWeapon(player_t *player)
   return newweapon;
 }
 
+int P_NextWeapon(player_t *player) {
+	
+	switch (player->readyweapon) {
+	case wp_fist: if (player->weaponowned[wp_chainsaw])
+		return wp_chainsaw;
+	case wp_chainsaw: if (player->ammo[am_clip]) 
+		return wp_pistol;
+	case wp_pistol: if (player->weaponowned[wp_shotgun] && player->ammo[am_shell])
+		return wp_shotgun;
+	case wp_shotgun: if (player->weaponowned[wp_supershotgun] && gamemode == commercial && player->ammo[am_shell])
+		return wp_supershotgun;
+	case wp_supershotgun: if (player->weaponowned[wp_chaingun] && player->ammo[am_clip])
+		return wp_chaingun;
+	case wp_chaingun: if (player->weaponowned[wp_missile] && player->ammo[am_misl])
+		return wp_missile;
+	case wp_missile: if (player->weaponowned[wp_plasma] && player->ammo[am_cell] && gamemode != shareware)
+		return wp_plasma;
+	case wp_plasma: if (player->weaponowned[wp_bfg] && gamemode != shareware && player->ammo[am_cell])
+		return wp_bfg;
+	default: return wp_fist;
+	}
+}
+
+int P_PrevWeapon(player_t *player) {
+	
+	switch (player->readyweapon) {
+	case wp_fist: if (player->weaponowned[wp_bfg] && gamemode != shareware && player->ammo[am_cell])
+		return wp_bfg;
+	case wp_bfg: if (player->weaponowned[wp_plasma] && player->ammo[am_cell] && gamemode != shareware)
+		return wp_plasma;
+	case wp_plasma: if (player->weaponowned[wp_missile] && player->ammo[am_misl])
+		return wp_missile;
+	case wp_missile: if (player->weaponowned[wp_chaingun] && player->ammo[am_clip])
+		return wp_chaingun;
+	case wp_chaingun: if (player->weaponowned[wp_supershotgun] && gamemode == commercial && player->ammo[am_shell])
+		return wp_supershotgun;
+	case wp_supershotgun: if (player->weaponowned[wp_shotgun] && player->ammo[am_shell])
+		return wp_shotgun;
+	case wp_shotgun: if (player->ammo[am_clip]) 
+		return wp_pistol;
+	case wp_pistol: if (player->weaponowned[wp_chainsaw])
+		return wp_chainsaw;
+	default: return wp_fist;
+	}
+}
+
 // killough 5/2/98: whether consoleplayer prefers weapon w1 over weapon w2.
 int P_WeaponPreferred(int w1, int w2)
 {

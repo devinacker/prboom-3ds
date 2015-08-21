@@ -69,7 +69,6 @@ int             leds_always_off = 0; // Expected by m_misc, not relevant
 
 // Mouse handling
 extern int     usemouse;        // config file var
-extern int     usejoystick;
 static boolean mouse_enabled; // usemouse, but can be overriden by -nomouse
 static boolean mouse_currently_grabbed;
 
@@ -127,7 +126,7 @@ static void I_GetInput() {
 
 	// iterate over other possible key values
 	int i;
-	for (i = 0; i < (usejoystick ? 28 : 32); i++) { // upper 4 bits (c-pad) may be treated as a joystick
+	for (i = 0; i < 32; i++) {
 		uint32_t key = 1<<i;
 		
 		if (down & key) {

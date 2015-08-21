@@ -27,7 +27,7 @@
  *  02111-1307, USA.
  *
  * DESCRIPTION:
- *   Joystick handling for 3DS
+ *   Joystick stub for 3DS
  *
  *-----------------------------------------------------------------------------
  */
@@ -55,20 +55,6 @@ int joydown;
 int usejoystick;
 
 void I_PollJoystick(void) {
-	event_t ev;
-	circlePosition pos;
-	
-	if (!usejoystick) return;
-	hidCircleRead(&pos);
-	
-	ev.type = ev_joystick;
-	ev.data1 = 0;
-	ev.data2 = pos.dx;
-	if (abs(ev.data2) < 50) ev.data2 = 0;
-	ev.data3 = -pos.dy;
-	if (abs(ev.data3) < 50) ev.data3 = 0;
-	
-	D_PostEvent(&ev);
 }
 
 void I_InitJoystick(void) {

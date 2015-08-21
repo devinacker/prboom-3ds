@@ -131,6 +131,8 @@ extern int  key_forward;
 extern int  key_leftturn;
 extern int  key_rightturn;
 extern int  key_backward;
+extern int  key_weaponcycleup;
+extern int  key_weaponcycledown;
 extern int  key_weapontoggle;
 extern int  key_weapon1;
 extern int  key_weapon2;

@@ -317,12 +317,7 @@ default_t defaults[] =
    def_int,ss_none},
   {"screen_height",{&desired_screenheight},{200},200,MAX_SCREENHEIGHT,
    def_int,ss_none},
-  {"use_fullscreen",{&use_fullscreen},{1},0,1, /* proff 21/05/2000 */
-   def_bool,ss_none},
-#ifndef DISABLE_DOUBLEBUFFER
-  {"use_doublebuffer",{&use_doublebuffer},{1},0,1,             // proff 2001-7-4
-   def_bool,ss_none}, // enable doublebuffer to avoid display tearing (fullscreen)
-#endif
+
   {"translucency",{&default_translucency},{1},0,1,   // phares
    def_bool,ss_none}, // enables translucency
   {"tran_filter_pct",{&tran_filter_pct},{66},0,100,         // killough 2/21/98
@@ -401,13 +396,13 @@ default_t defaults[] =
 // CPhipps - now they're the doom codes, so default.cfg can be portable
 	
   {"Key bindings",{NULL},{0},UL,UL,def_none,ss_none},
-  {"key_right",       {&key_right},          {KEYD_DRIGHT},
+  {"key_right",       {&key_right},          {KEYD_CPAD_RIGHT},
    0,MAX_KEY,def_key,ss_keys}, // key to turn right
-  {"key_left",        {&key_left},           {KEYD_DLEFT} ,
+  {"key_left",        {&key_left},           {KEYD_CPAD_LEFT} ,
    0,MAX_KEY,def_key,ss_keys}, // key to turn left
-  {"key_up",          {&key_up},             {KEYD_DUP}   ,
+  {"key_up",          {&key_up},             {KEYD_CPAD_UP}   ,
    0,MAX_KEY,def_key,ss_keys}, // key to move forward
-  {"key_down",        {&key_down},           {KEYD_DDOWN},
+  {"key_down",        {&key_down},           {KEYD_CPAD_DOWN},
    0,MAX_KEY,def_key,ss_keys}, // key to move backward
   {"key_menu_right",  {&key_menu_right},     {KEYD_DRIGHT},// phares 3/7/98
    0,MAX_KEY,def_key,ss_keys}, // key to move right in a menu  //     |
@@ -471,17 +466,17 @@ default_t defaults[] =
    0,MAX_KEY,def_key,ss_keys}, // key to select from menu or see last message
   {"key_map",         {&key_map},            {KEYD_SELECT} /* TODO for 3DS: remove if/when map added to bottom screen */,
    0,MAX_KEY,def_key,ss_keys}, // key to toggle automap display
-  {"key_map_right",   {&key_map_right},      {KEYD_DRIGHT},// phares 3/7/98
+  {"key_map_right",   {&key_map_right},      {KEYD_CPAD_RIGHT},// phares 3/7/98
    0,MAX_KEY,def_key,ss_keys}, // key to shift automap right   //     |
-  {"key_map_left",    {&key_map_left},       {KEYD_DLEFT} ,//     V
+  {"key_map_left",    {&key_map_left},       {KEYD_CPAD_LEFT} ,//     V
    0,MAX_KEY,def_key,ss_keys}, // key to shift automap left
-  {"key_map_up",      {&key_map_up},         {KEYD_DUP}   ,
+  {"key_map_up",      {&key_map_up},         {KEYD_CPAD_UP}   ,
    0,MAX_KEY,def_key,ss_keys}, // key to shift automap up
-  {"key_map_down",    {&key_map_down},       {KEYD_DDOWN} ,
+  {"key_map_down",    {&key_map_down},       {KEYD_CPAD_DOWN} ,
    0,MAX_KEY,def_key,ss_keys}, // key to shift automap down
-  {"key_map_zoomin",  {&key_map_zoomin},      {0}           ,
+  {"key_map_zoomin",  {&key_map_zoomin},      {KEYD_DUP}           ,
    0,MAX_KEY,def_key,ss_keys}, // key to enlarge automap
-  {"key_map_zoomout", {&key_map_zoomout},     {0}           ,
+  {"key_map_zoomout", {&key_map_zoomout},     {KEYD_DDOWN}           ,
    0,MAX_KEY,def_key,ss_keys}, // key to reduce automap
   {"key_map_gobig",   {&key_map_gobig},       {0}           ,
    0,MAX_KEY,def_key,ss_keys},  // key to get max zoom for automap
@@ -512,6 +507,12 @@ default_t defaults[] =
    0,MAX_KEY,def_key,ss_keys}, // key to chat with player 3
   {"key_chatplayer4", {&destination_keys[3]}, {0}            ,
    0,MAX_KEY,def_key,ss_keys}, // key to chat with player 4
+  
+  {"key_weaponcycleup",{&key_weaponcycleup},    {KEYD_DUP}            ,
+   0,MAX_KEY,def_key,ss_keys}, // key to cycle to next weapon
+  {"key_weaponcycledown",{&key_weaponcycledown},    {KEYD_DDOWN}            ,
+   0,MAX_KEY,def_key,ss_keys}, // key to cycle to next weapon  
+ 
   {"key_weapontoggle",{&key_weapontoggle},    {KEYD_ZL}            ,
    0,MAX_KEY,def_key,ss_keys}, // key to toggle between two most preferred weapons with ammo
   {"key_weapon1",     {&key_weapon1},         {0}            ,

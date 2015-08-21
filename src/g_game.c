@@ -193,6 +193,8 @@ int     key_spy;
 int     key_pause;
 int     key_setup;
 int     destination_keys[MAXPLAYERS];
+int     key_weaponcycleup;
+int     key_weaponcycledown;
 int     key_weapontoggle;
 int     key_weapon1;
 int     key_weapon2;
@@ -391,6 +393,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if ((!demo_compatibility && players[consoleplayer].attackdown && // killough
        !P_CheckAmmo(&players[consoleplayer])) || gamekeydown[key_weapontoggle])
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
+  else if (gamekeydown[key_weaponcycleup])
+    newweapon = P_NextWeapon(&players[consoleplayer]);
+  else if (gamekeydown[key_weaponcycledown])
+    newweapon = P_PrevWeapon(&players[consoleplayer]);
   else
     {                                 // phares 02/26/98: Added gamemode checks
       newweapon =
