@@ -8,7 +8,7 @@ It is unrelated to [prboom3ds](https://github.com/elhobbs/prboom3ds) by elhobbs 
 
 - Follow the guide to running 3DS homebrew: [http://smealum.github.io/3ds/](http://smealum.github.io/3ds/)
 - Place `prboom-3ds.3dsx` and `prboom-3ds.smdh` on your SD card under the directory **/3ds/prboom-3ds**
-- Place an IWAD (such as `doom.wad` or `doom2.wad`) in the same directory
+- Place `prboom.wad` (in the data directory) and an IWAD (such as `doom.wad` or `doom2.wad`) in the same directory
 - Launch prboom-3ds from the Homebrew Launcher
 
 The default controls are: (subject to change pending testing)
