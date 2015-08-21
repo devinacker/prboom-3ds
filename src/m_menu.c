@@ -2969,6 +2969,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Use Touchpad as Mouse", S_YESNO, m_null, G_X,
    G_YB + general_mouse*8, {"use_mouse"}},
 
+  {"Use Circle Pad as Analog Stick", S_YESNO, m_null, G_X,
+   G_YB + general_joy*8, {"use_joystick"}},
+
   /* TODO for 3DS */
   /*
   {"Files Preloaded at Game Startup",S_SKIP|S_TITLE, m_null, G_X,
@@ -3011,9 +3014,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 void M_ChangeDemoSmoothTurns(void)
 {
   if (demo_smoothturns)
-    gen_settings2[6].m_flags &= ~(S_SKIP|S_SELECT);
+    gen_settings2[7].m_flags &= ~(S_SKIP|S_SELECT);
   else
-    gen_settings2[6].m_flags |= (S_SKIP|S_SELECT);
+    gen_settings2[7].m_flags |= (S_SKIP|S_SELECT);
 
   R_SmoothPlaying_Reset(NULL);
 }
