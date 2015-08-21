@@ -1484,7 +1484,7 @@ enum
   set_automap,
   set_enemy,
   set_messages,
-  set_chatstrings,
+  /* set_chatstrings, */
   set_setup_end
 } setup_e;
 
