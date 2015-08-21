@@ -106,9 +106,9 @@ typedef enum {
 // allows us to avoid the overhead of dynamic allocation
 // when multiple screen sizes are supported
 
-// proff 08/17/98: Changed for high-res
-#define MAX_SCREENWIDTH  2048
-#define MAX_SCREENHEIGHT 1536
+/* TODO for 3DS: possible widescreen on top */
+#define MAX_SCREENWIDTH  320
+#define MAX_SCREENHEIGHT 240
 
 // SCREENWIDTH and SCREENHEIGHT define the visible size
 extern int SCREENWIDTH;

@@ -290,7 +290,7 @@ void I_UpdateNoBlit (void)
 // I_TranslateFrameBuffer
 //
 // TODO: allow copying partial screens (for top screen borders)
-void I_TranslateFrameBuffer(unsigned scrn, gfxScreen_t scrndest, gfx3dSide_t side, int xoff) {
+void I_TranslateFrameBuffer(unsigned scrn, gfxScreen_t scrndest, gfx3dSide_t side, int xoff, int yoff) {
 	
 	if (scrn >= NUM_SCREENS)
 		I_Error("I_TranslateFrameBuffer: invalid screen number %u", scrn);
@@ -300,23 +300,25 @@ void I_TranslateFrameBuffer(unsigned scrn, gfxScreen_t scrndest, gfx3dSide_t sid
 	uint16_t width, height;
 	char *fb = gfxGetFramebuffer(scrndest, side, &width, &height);
 	
-	// remember that the 3DS framebuffer is rotated 90'
-	if (width != screens[scrn].height)
-		I_Error("I_TranslateFrameBuffer: screen height mismatch (%u != %u)", width, screens[scrn].height);
-	
 	// center screen horizontally
 	if (xoff < 0) {
 		xoff = (height - screens[scrn].width) / 2;
 	}
-	
 	if (xoff > height - screens[scrn].width)
 		I_Error("I_TranslateFrameBuffer: bad x-offset (%d > %u)", xoff, height - screens[scrn].width);
+
+	// center screen vertically	
+	if (yoff < 0) {
+		yoff = (width - screens[scrn].height) / 2;
+	}
+	if (yoff > width - screens[scrn].height)
+		I_Error("I_TranslateFrameBuffer: bad y-offset (%d > %u)", yoff, width - screens[scrn].height);
 		
 	uint16_t x, y;
 	// do palette lookups and rotate image 90' into the framebuffer here
 	char *src = screens[scrn].data;
 	
-	for (x = 0; x < width; x++) {
+	for (x = yoff; x < screens[scrn].height + yoff; x++) {
 		for (y = xoff; y < screens[scrn].width + xoff; y++) {
 			char *dest = fb + ((y * width + (width - x - 1)) * 3);
 			char px = *src++;
@@ -350,7 +352,7 @@ void I_FinishUpdate (void)
 
 	// TODO: use enums for screen numbers and apply them where appropriate
 	// main game on top screen (TODO: both sides)
-	I_TranslateFrameBuffer(0, GFX_TOP, GFX_LEFT, -1);
+	I_TranslateFrameBuffer(0, GFX_TOP, GFX_LEFT, -1, -1);
 	// TODO: automap on bottom screen
 	// I_TranslateFrameBuffer(0, GFX_BOTTOM, 0, -1);
 	
@@ -438,10 +440,6 @@ void I_InitGraphics(void)
   if (firsttime)
   {
     firsttime = 0;
-
-	/* TODO for 3DS: clean this up */
-	SCREENWIDTH = 320;
-	SCREENHEIGHT = 240;
 
     atexit(I_ShutdownGraphics);
     lprintf(LO_INFO, "I_InitGraphics: %dx%d\n", SCREENWIDTH, SCREENHEIGHT);

@@ -312,10 +312,10 @@ default_t defaults[] =
 #else
   {"videomode",{NULL, &default_videomode},{0,"8"},UL,UL,def_str,ss_none},
 #endif
-  /* 320x240 default resolution */
+  /* 320x200 default resolution */
   {"screen_width",{&desired_screenwidth},{320}, 320, MAX_SCREENWIDTH,
    def_int,ss_none},
-  {"screen_height",{&desired_screenheight},{240},200,MAX_SCREENHEIGHT,
+  {"screen_height",{&desired_screenheight},{200},200,MAX_SCREENHEIGHT,
    def_int,ss_none},
   {"use_fullscreen",{&use_fullscreen},{1},0,1, /* proff 21/05/2000 */
    def_bool,ss_none},
