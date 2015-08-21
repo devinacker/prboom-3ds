@@ -3798,14 +3798,16 @@ int M_GetKeyString(int c,int offset)
     case KEYD_DRIGHT: s = "D-RT"; break;
     case KEYD_DDOWN:  s = "D-DN"; break;
 	case KEYD_CSTICK_LEFT: s = "CSLT"; break;
-	case KEYD_CSTICK_UP: s = "CSRT"; break;
-	case KEYD_CSTICK_RIGHT: s = "CSUP"; break;
+	case KEYD_CSTICK_UP: s = "CSUP"; break;
+	case KEYD_CSTICK_RIGHT: s = "CSRT"; break;
 	case KEYD_CSTICK_DOWN: s = "CSDN"; break;
 	case KEYD_CPAD_LEFT: s = "C-LT"; break;
 	case KEYD_CPAD_UP: s = "C-UP"; break;
 	case KEYD_CPAD_RIGHT: s = "C-RT"; break;
 	case KEYD_CPAD_DOWN: s = "C-DN"; break;
 	case KEYD_TOUCH: s = "TPAD"; break;
+	case KEYD_ZL: s = "ZL"; break;
+	case KEYD_ZR: s = "ZR"; break;
     default:              s = ""; break;
     }
 
