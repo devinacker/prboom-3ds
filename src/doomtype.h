@@ -41,9 +41,15 @@
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
-#include <stdbool.h>
 
-typedef bool boolean;
+typedef int boolean;
+#ifndef true
+#define true 1
+#endif
+#ifndef false
+#define false 0
+#endif
+
 typedef unsigned char byte;
 #endif
 
