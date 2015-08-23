@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -901,9 +902,7 @@ void M_SaveSelect(int choice)
 
   saveSlot = choice;
   strcpy(saveOldString,savegamestrings[choice]);
-  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
-    savegamestrings[choice][0] = 0;
-  saveCharIndex = strlen(savegamestrings[choice]);
+  strcpy(savegamestrings[choice], "press A to confirm");
 }
 
 //
@@ -4138,16 +4137,7 @@ boolean M_Responder (event_t* ev) {
   // Save Game string input
 
   if (saveStringEnter) {
-    if (ch == key_menu_backspace)                            // phares 3/7/98
-      {
-      if (saveCharIndex > 0)
-        {
-        saveCharIndex--;
-        savegamestrings[saveSlot][saveCharIndex] = 0;
-        }
-      }
-
-      else if (ch == key_menu_escape)                    // phares 3/7/98
+    if ((ch == key_menu_escape) || (ch == key_menu_backspace))
   {
     saveStringEnter = 0;
     strcpy(&savegamestrings[saveSlot][0],saveOldString);
@@ -4156,20 +4146,12 @@ boolean M_Responder (event_t* ev) {
       else if (ch == key_menu_enter)                     // phares 3/7/98
   {
     saveStringEnter = 0;
-    if (savegamestrings[saveSlot][0])
-      M_DoSave(saveSlot);
-  }
-
-      else
-  {
-  ch = toupper(ch);
-  if (ch >= 32 && ch <= 127 &&
-      saveCharIndex < SAVESTRINGSIZE-1 &&
-      M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE-2)*8)
-    {
-    savegamestrings[saveSlot][saveCharIndex++] = ch;
-    savegamestrings[saveSlot][saveCharIndex] = 0;
-    }
+	// put timestamp in demo slot
+	time_t savetime = time(NULL);
+	struct tm *savetm = localtime(&savetime);
+	strftime(&savegamestrings[saveSlot][0], SAVESTRINGSIZE, "%Y-%m-%d %T", savetm);
+	
+    M_DoSave(saveSlot);
   }
     return true;
   }

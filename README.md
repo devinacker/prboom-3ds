@@ -28,8 +28,7 @@ This is also subject to break in weird ways that I don't know about yet. If you 
 
 A few known bugs:
 
-- Saving games is currently not possible due to lack of hardware keyboard
-- Some config options can't be changed ingame for the same reason
+- Some config options (numerical values) can't be changed ingame for the same reason
 
 ## How to build
 
