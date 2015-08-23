@@ -30,9 +30,7 @@ A few known bugs:
 
 - Saving games is currently not possible due to lack of hardware keyboard
 - Some config options can't be changed ingame for the same reason
-- Picking up weapons in Doom 2 (and Final Doom?) may hang the game
-- The number "2" for the pistol on the status bar sometimes disappears when picking up other weapons
-- IWAD demos usually (or always) desync, other demos probably do too
+- The `movedir` field of enemies is sometimes corrupted; this leads to weird positions and demo desyncing
 
 ## How to build
 
