@@ -30,7 +30,6 @@ A few known bugs:
 
 - Saving games is currently not possible due to lack of hardware keyboard
 - Some config options can't be changed ingame for the same reason
-- The `movedir` field of enemies is sometimes corrupted; this leads to weird positions and demo desyncing
 
 ## How to build
 

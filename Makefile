@@ -43,6 +43,8 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffast-math \
+			# TODO: enforce int-size for specific enums as needed instead of doing this
+			-fno-short-enums \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
@@ -50,6 +52,8 @@ CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 CFLAGS  +=  -DDOGS
 # not currently used
 CFLAGS  +=  -DDOOMWADDIR
+# leave in for debugging purposes for now
+CFLAGS +=   -DRANGECHECK
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
