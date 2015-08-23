@@ -323,11 +323,28 @@ void I_TranslateFrameBuffer(unsigned scrn, gfxScreen_t scrndest, gfx3dSide_t sid
 	for (x = yoff; x < screens[scrn].height + yoff; x++) {
 		for (y = xoff; y < screens[scrn].width + xoff; y++) {
 			char *dest = fb + ((y * width + (width - x - 1)) * 3);
-			char px = *src++;
+			char px;
 			
-			*dest++ = current_pal[px].b;
-			*dest++ = current_pal[px].g;
-			*dest++ = current_pal[px].r;
+			switch (V_GetMode()) {
+			case VID_MODE8:
+				px = *src++;
+				
+				*dest++ = current_pal[px].b;
+				*dest++ = current_pal[px].g;
+				*dest++ = current_pal[px].r;
+				break;
+				
+			case VID_MODE32:
+				*dest++ = *src++;
+				*dest++ = *src++;
+				*dest++ = *src++;
+				src++;
+				
+				break;
+				
+			default:
+				I_Error("I_TranslateFrameBuffer: unsupported video mode");
+			}
 		}
 	}
 }
@@ -457,6 +474,20 @@ void I_InitGraphics(void)
   }
 }
 
+int I_GetModeFromString(const char *modestr)
+{
+  video_mode_t mode;
+
+  if (!stricmp(modestr,"32")) {
+    mode = VID_MODE32;
+  } else if (!stricmp(modestr,"32bit")) {
+    mode = VID_MODE32;
+  } else {
+    mode = VID_MODE8;
+  }
+  return mode;
+}
+
 void I_UpdateVideoMode(void)
 {
   int init_flags;
@@ -466,7 +497,10 @@ void I_UpdateVideoMode(void)
   lprintf(LO_INFO, "I_UpdateVideoMode: %dx%d (%s)\n", SCREENWIDTH, SCREENHEIGHT, desired_fullscreen ? "fullscreen" : "nofullscreen");
 
   // For now, use 8-bit rendering but default 24-bit framebuffer
-  mode = VID_MODE8;
+  mode = I_GetModeFromString(default_videomode);
+  if ((i=M_CheckParm("-vidmode")) && i<myargc-1) {
+    mode = I_GetModeFromString(myargv[i+1]);
+  }
   
   // reset video modes
   gfxExit();

@@ -38,7 +38,6 @@ A few known bugs:
 
 ## To do
 
-- Re-add 24-bit color support
 - Sound support
 - Add fancy stereoscopic 3D on the top screen
 - Persistent automap on the bottom screen (probably)
