@@ -41,9 +41,9 @@ APP_AUTHOR	    :=
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
+			# TODO: enforce int-size for specific enums as needed instead of doing this
 CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffast-math \
-			# TODO: enforce int-size for specific enums as needed instead of doing this
 			-fno-short-enums \
 			$(ARCH)
 
