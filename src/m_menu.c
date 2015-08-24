@@ -2053,7 +2053,7 @@ static void M_DrawInstructions(void)
       M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit filename and Press A");
       break;
     case S_CHOICE: 
-      M_DrawStringCentered(160, 20, CR_SELECT, "Press left or right to choose");
+      M_DrawStringCentered(160, 20, CR_SELECT, "Use D-pad to choose");
       break;
     case S_RESET:
       break;
@@ -2463,14 +2463,14 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 6*8},
 
   {"HIDE SECRETS"      ,S_YESNO     ,m_null,ST_X,ST_Y+ 7*8, {"hud_nosecrets"}},
-  {"HEALTH LOW/OK"     ,S_NUM       ,m_null,ST_X,ST_Y+ 8*8, {"health_red"}},
-  {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,ST_X,ST_Y+ 9*8, {"health_yellow"}},
-  {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,ST_X,ST_Y+10*8, {"health_green"}},
-  {"ARMOR LOW/OK"      ,S_NUM       ,m_null,ST_X,ST_Y+11*8, {"armor_red"}},
-  {"ARMOR OK/GOOD"     ,S_NUM       ,m_null,ST_X,ST_Y+12*8, {"armor_yellow"}},
-  {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
-  {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
-  {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
+  {"HEALTH LOW/OK"     ,S_CHOICE       ,m_null,ST_X,ST_Y+ 8*8, {"health_red"}},
+  {"HEALTH OK/GOOD"    ,S_CHOICE       ,m_null,ST_X,ST_Y+ 9*8, {"health_yellow"}},
+  {"HEALTH GOOD/EXTRA" ,S_CHOICE       ,m_null,ST_X,ST_Y+10*8, {"health_green"}},
+  {"ARMOR LOW/OK"      ,S_CHOICE       ,m_null,ST_X,ST_Y+11*8, {"armor_red"}},
+  {"ARMOR OK/GOOD"     ,S_CHOICE       ,m_null,ST_X,ST_Y+12*8, {"armor_yellow"}},
+  {"ARMOR GOOD/EXTRA"  ,S_CHOICE       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
+  {"AMMO LOW/OK"       ,S_CHOICE       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
+  {"AMMO OK/GOOD"      ,S_CHOICE       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2742,10 +2742,10 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
 #ifdef DOGS
   // killough 7/19/98
-  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,E_X,E_Y+ enem_helpers*8, {"player_helpers"}},
+  {"Number Of Single-Player Helper Dogs",S_CHOICE|S_LEVWARN,m_null,E_X,E_Y+ enem_helpers*8, {"player_helpers"}},
 
   // killough 8/8/98
-  {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
+  {"Distance Friends Stay Away",S_CHOICE,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
 
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
 #endif
@@ -2868,7 +2868,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Enable Translucency", S_YESNO, m_null, G_X,
    G_YA + general_trans*8, {"translucency"}, 0, 0, M_Trans},
 
-  {"Translucency filter percentage", S_NUM, m_null, G_X,
+  {"Translucency filter percentage", S_CHOICE, m_null, G_X,
    G_YA + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
 /*
   {"Fullscreen Video mode", S_YESNO|S_PRGWARN, m_null, G_X,
@@ -2889,7 +2889,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Texture format", S_CHOICE|S_PRGWARN, m_null, G_X,
    G_YA2 + general_gl_texformat*8, {"gl_tex_format_string"}, 0, 0, NULL, gltexformats},
 
-  {"Item out of Floor offset", S_NUM, m_null, G_X,
+  {"Item out of Floor offset", S_CHOICE, m_null, G_X,
    G_YA2 + general_flooroffset*8, {"gl_sprite_offset"}},
 #endif
 
@@ -2915,7 +2915,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    G_YA2 + general_detvoices*8, {"detect_voices"}},
 #endif
 
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
+  {"Number of Sound Channels", S_CHOICE|S_PRGWARN, m_null, G_X,
    G_YA3 + general_sndchan*8, {"snd_channels"}},
 
   {"Enable v1.1 Pitch Effects", S_YESNO, m_null, G_X,
@@ -2985,16 +2985,16 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   */
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_YB2 - 12},
 
-  {"Maximum number of player corpses", S_NUM|S_PRGWARN, m_null, G_X,
+  {"Maximum number of player corpses", S_CHOICE|S_PRGWARN, m_null, G_X,
    G_YB2 + general_corpse*8, {"max_player_corpse"}},
 
-  {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, G_X,
+  {"Game speed, percentage of normal", S_CHOICE|S_PRGWARN, m_null, G_X,
    G_YB2 + general_realtic*8, {"realtic_clock_rate"}},
 
   {"Smooth Demo Playback", S_YESNO, m_null, G_X,
    G_YB2 + general_smooth*8, {"demo_smoothturns"}, 0, 0, M_ChangeDemoSmoothTurns},
 
-  {"Smooth Demo Playback Factor", S_NUM, m_null, G_X,
+  {"Smooth Demo Playback Factor", S_CHOICE, m_null, G_X,
    G_YB2 + general_smoothfactor*8, {"demo_smoothturnsfactor"}, 0, 0, M_ChangeDemoSmoothTurns},
 
   {"Default skill level", S_CHOICE, m_null, G_X,
@@ -3372,7 +3372,7 @@ setup_menu_t mess_settings1[] =  // Messages screen
    M_Y  + mess_hud_timer*8, {"hud_msg_timer"}},
 #endif
 
-  {"Number of Review Message Lines", S_NUM, m_null,  M_X,
+  {"Number of Review Message Lines", S_CHOICE, m_null,  M_X,
    M_Y + mess_lines*8, {"hud_msg_lines"}},
 
 #if 0
@@ -4472,11 +4472,12 @@ boolean M_Responder (event_t* ev) {
 
   if (ptr1->m_flags & S_CHOICE) // selection of choices?
     {
-    if (ch == key_menu_left) {
+    if ((ch == key_menu_left) || (ch == key_menu_down)) {
       if (ptr1->var.def->type == def_int) {
         int value = *ptr1->var.def->location.pi;
       
-        value = value - 1;
+	    // left/right should be used for quicker integer selection
+        value = value - ((ch == key_menu_left) ? 10 : 1);
         if ((ptr1->var.def->minvalue != UL &&
              value < ptr1->var.def->minvalue))
           value = ptr1->var.def->minvalue;
@@ -4500,11 +4501,12 @@ boolean M_Responder (event_t* ev) {
         *ptr1->var.def->location.ppsz = ptr1->selectstrings[value];
       }
     }
-    if (ch == key_menu_right) {
+    if ((ch == key_menu_right) || (ch == key_menu_up)) {
       if (ptr1->var.def->type == def_int) {
         int value = *ptr1->var.def->location.pi;
       
-        value = value + 1;
+	    // left/right should be used for quicker integer selection
+        value = value + ((ch == key_menu_right) ? 10 : 1);
         if ((ptr1->var.def->minvalue != UL &&
              value < ptr1->var.def->minvalue))
           value = ptr1->var.def->minvalue;

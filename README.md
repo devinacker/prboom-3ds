@@ -26,10 +26,6 @@ Currently there is no convenient way to select from multiple IWADs or to load ad
 
 This is also subject to break in weird ways that I don't know about yet. If you see something, say something.
 
-A few known bugs:
-
-- Some config options (numerical values) can't be changed ingame for the same reason
-
 ## How to build
 
 - Follow the guide to setting up a 3DS development environment: [http://3dbrew.org/wiki/Setting_up_Development_Environment](http://3dbrew.org/wiki/Setting_up_Development_Environment)
