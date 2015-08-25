@@ -2034,17 +2034,11 @@ static void M_DrawInstructions(void)
     case S_YESNO:
       M_DrawStringCentered(160, 20, CR_SELECT, "Press A button to toggle");
       break;
-    case S_WEAP:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Enter weapon number");
-      break;
     case S_NUM:
       M_DrawStringCentered(160, 20, CR_SELECT, "Enter value. Press A when finished.");
       break;
     case S_COLOR:
       M_DrawStringCentered(160, 20, CR_SELECT, "Select color and press A");
-      break;
-    case S_CRITEM:
-      M_DrawStringCentered(160, 20, CR_SELECT, "Enter value");
       break;
     case S_CHAT:
       M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit chat string and Press A");
@@ -2053,6 +2047,8 @@ static void M_DrawInstructions(void)
       M_DrawStringCentered(160, 20, CR_SELECT, "Type/edit filename and Press A");
       break;
     case S_CHOICE: 
+	case S_WEAP:
+	case S_CRITEM:
       M_DrawStringCentered(160, 20, CR_SELECT, "Use D-pad to choose");
       break;
     case S_RESET:
@@ -4397,21 +4393,6 @@ boolean M_Responder (event_t* ev) {
     return true;
     }
 
-  if (ptr1->m_flags & S_CRITEM)
-    {
-    if (ch != key_menu_enter)
-      {
-      ch -= 0x30; // out of ascii
-      if (ch < 0 || ch > 9)
-        return true; // ignore
-      *ptr1->var.def->location.pi = ch;
-      }
-    if (ptr1->action)      // killough 10/98
-      ptr1->action();
-    M_SelectDone(ptr1);                      // phares 4/17/98
-    return true;
-    }
-
   if (ptr1->m_flags & S_NUM) // number?
     {
       if (setup_gather) { // gathering keys for a value?
@@ -4470,7 +4451,7 @@ boolean M_Responder (event_t* ev) {
       return true;
     }
 
-  if (ptr1->m_flags & S_CHOICE) // selection of choices?
+  if (ptr1->m_flags & (S_CHOICE|S_WEAP|S_CRITEM)) // selection of choices?
     {
     if ((ch == key_menu_left) || (ch == key_menu_down)) {
       if (ptr1->var.def->type == def_int) {
