@@ -36,7 +36,6 @@ This is also subject to break in weird ways that I don't know about yet. If you 
 - Sound support
 - Add fancy stereoscopic 3D on the top screen
 - Persistent automap on the bottom screen (probably)
-- Optional widescreen (with increased FOV) on the top screen
 - Minimal touch screen interface for things like selecting weapons or manipulating the automap
 - Multiplayer?????
 
