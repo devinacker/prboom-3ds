@@ -121,9 +121,9 @@ const char *compLevelVals[] = {
 boolean warpEnable = false;
 int warpEpisode = 0; 
 int warpMap = 1;
-int warpSkill = 3;
+int warpSkill = 2;
 
-const char *warpSkillVals[] = {"No actors (0)", "ITYTD (1)", "HNTR (2)", "HMP (3)", "UV (4)", "Nightmare (5)", 0};
+const char *warpSkillVals[] = {"ITYTD (1)", "HNTR (2)", "HMP (3)", "UV (4)", "Nightmare (5)", 0};
 
 int gameMode = 0;
 
@@ -235,15 +235,21 @@ void I_MainMenu() {
 			}
 		}
 		
-		// handle input for current menu item
-		hidScanInput();
-		u32 down = hidKeysDown();
-		
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+
 		int *iData = (int*)selected->data;
 		boolean *bData = (boolean*)selected->data;
 		int selectedOption = (iData) ? *iData : 0;
 		
+		// handle input for current menu item
 		// TODO: handle skipping blank menu items
+		u32 down = 0;
+		while (!down) {
+			gspWaitForVBlank();
+			hidScanInput();
+			down = hidKeysDown();
+		}
 		
 		if (down & KEY_UP) {
 			if (menupos > 0) menupos--;
@@ -294,10 +300,6 @@ void I_MainMenu() {
 				menupos = 0;
 			}
 		}
-		
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-		gspWaitForVBlank();
 	}
 
 	I_AddArg(PACKAGE);
@@ -316,7 +318,7 @@ void I_MainMenu() {
 	
 	if (compLevel) {
 		I_AddArg("-complevel");
-		I_AddArgNum(compLevel-1);
+		I_AddArgNum(compLevel - 1);
 	}
 	
 	if (warpEnable) {
@@ -327,7 +329,7 @@ void I_MainMenu() {
 		I_AddArgNum(warpMap);
 		
 		I_AddArg("-skill");
-		I_AddArgNum(warpSkill);
+		I_AddArgNum(warpSkill + 1);
 		
 		if (gameMode == 1)
 			I_AddArg("-solo-net");
