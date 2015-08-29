@@ -40,6 +40,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "doomtype.h"
 #include "m_argv.h"
 
 char **newargv;
@@ -62,7 +63,7 @@ typedef struct {
 	void *data; // pointer to variable
 	short width; // for text positioning
 	const char **values; // pointer to item choices
-	int min, max; // (for item_int) min and max integer values
+	int min, max, step; // (for item_int) min and max integer values
 } menuitem_t;
 
 const char *screenWidthVals[] = {"320", "400", 0};
@@ -78,14 +79,77 @@ const char *gameWadVals[] = {"doom.wad", "doom2.wad", "tnt.wad", "plutonia.wad",
 
 int gameWad = 0;
 
-static menuitem_t menuMain[] = {
+static const menuitem_t menuExtra[];
+
+static const menuitem_t menuMain[] = {
 	{2, "Start game", item_menu, 0, 0, 0},
+	{3, "Extra options...", item_menu, menuExtra, 0, 0},
 	
-	{4, "Screen width", item_choice, &screenWidth, 3, screenWidthVals},
-	{5, "Screen height", item_choice, &screenHeight, 3, screenHeightVals},
-	{6, "Screen depth (bits)", item_choice, &screenDepth, 3, screenDepthVals},
+	{5, "Game IWAD", item_choice, &gameWad, 12, gameWadVals},
 	
-	{8, "Game IWAD", item_choice, &gameWad, 12, gameWadVals},
+	{7, "Screen width", item_choice, &screenWidth, 3, screenWidthVals},
+	{8, "Screen height", item_choice, &screenHeight, 3, screenHeightVals},
+	{9, "Screen depth (bits)", item_choice, &screenDepth, 3, screenDepthVals},
+	
+	{-1}
+};
+
+int compLevel = 0;
+
+const char *compLevelVals[] = { 
+	"Default", 
+	"Doom v1.2 (0)", 
+	"Doom v1.666 (1)", 
+	"Doom / Doom 2 v1.9 (2)", 
+	"Ultimate Doom (3)", 
+	"Final Doom (4)",
+	"DOSDoom compatibility (5)", 
+	"TASDoom compatibility (6)", 
+	"\"Boom compatibility\" (7)", 
+	"Boom v2.01 (8)", 
+	"Boom v2.02 (9)", 
+	"LxDoom v1.3.2+ (10)",
+	"MBF (11)", 
+	"PrBoom 2.03beta (12)", 
+	"PrBoom v2.1.0-2.1.1 (13)", 
+	"PrBoom v2.1.2-v2.2.6 (14)",
+	"PrBoom v2.3.x (15)", 
+	"PrBoom 2.4.0 (16)", 
+	"Current PrBoom (17)", 
+	0 };
+
+boolean warpEnable = false;
+int warpEpisode = 0; 
+int warpMap = 1;
+int warpSkill = 3;
+
+const char *warpSkillVals[] = {"No actors (0)", "ITYTD (1)", "HNTR (2)", "HMP (3)", "UV (4)", "Nightmare (5)", 0};
+
+int gameMode = 0;
+
+const char *gameModeVals[] = {"Single player", "Solo coop", "Deathmatch", "Altdeath", 0};
+
+int turbo = 100;
+
+boolean noMonsters = false;
+boolean fastMonsters = false;
+
+static const menuitem_t menuExtra[] = {
+	{2, "Back...", item_menu, menuMain, 0, 0},
+	{3, "Start game", item_menu, 0, 0, 0},
+	
+	{5, "Compatibility level", item_choice, &compLevel, 25, compLevelVals},
+	
+	{8, "Warp", item_bool, &warpEnable},
+	{9, "| Episode (Doom 1 only)", item_int, &warpEpisode, 2, NULL, 0, 4, 1},
+	{10, "| Map", item_int, &warpMap, 2, NULL, 1, 32, 1},
+	{11, "| Skill", item_choice, &warpSkill, 14, warpSkillVals},
+	{12, "|", item_void},
+	{13, "| Game mode", item_choice, &gameMode, 14, gameModeVals},
+	{14, "| No monsters", item_bool, &noMonsters},
+	{15, "| Fast monsters", item_bool, &fastMonsters},
+	
+	{17, "Turbo (percent)", item_int, &turbo, 3, NULL, 10, 400, 10},
 	
 	{-1}
 };
@@ -107,12 +171,18 @@ void I_AddArg(const char *value) {
 	myargv = (const char* const *)newargv;
 }
 
+void I_AddArgNum(int value) {
+	static char str[16];
+	sprintf(str, "%d", value);
+	I_AddArg(str);
+}
+
 void I_MainMenu() {
 	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, 0);
 	myargc = 0; newargv = 0;
 	
-	menuitem_t *current = menuMain;
+	menuitem_t const *current = menuMain;
 	int menupos = 0;
 	
 	atexit(I_Cleanup);
@@ -122,7 +192,7 @@ void I_MainMenu() {
 	while (1) {
 		consoleClear();
 		
-		menuitem_t *selected = &current[menupos];
+		menuitem_t const *selected = &current[menupos];
 		
 		// draw cursor
 		printf("\x1b[%u;1H--> ", selected->y);
@@ -136,27 +206,31 @@ void I_MainMenu() {
 			if (!i->data) continue;
 			
 			int *iData = (int*)i->data;
-			bool *bData = (bool*)i->data;
+			boolean *bData = (boolean*)i->data;
 			
 			char hasPrev, hasNext;
+			// alternate y-position for string choice items only
+			short y = i->y;
+			if (i->width + strlen(i->text) > 30)
+				y++;
 			
 			switch (i->type) {
 			case item_choice:
 				hasPrev = *iData ? '<' : ' ';
 				hasNext = i->values[*iData + 1] ? '>' : ' ';
 				
-				printf("\x1b[%u;%uH%c %*s %c", i->y, 31 - i->width, hasPrev, i->width, i->values[*iData], hasNext);
+				printf("\x1b[%u;%uH%c %*s %c", y, 31 - i->width, hasPrev, i->width, i->values[*iData], hasNext);
 				break;
 				
 			case item_int:
 				hasPrev = (*iData > i->min) ? '<' : ' ';
 				hasNext = (*iData < i->max) ? '>' : ' ';
 			
-				printf("\x1b[%u;%uH%-*u", i->y, 31 - i->width, i->width, *iData);
+				printf("\x1b[%u;%uH%*u", i->y, 33 - i->width, i->width, *iData);
 				break;
 				
 			case item_bool:
-				printf("\x1b[%u;30H[%c]", i->y, *bData ? 'x' : ' ');
+				printf("\x1b[%u;30H%3s", i->y, *bData ? "yes" : "no");
 				break;
 			}
 		}
@@ -166,7 +240,7 @@ void I_MainMenu() {
 		u32 down = hidKeysDown();
 		
 		int *iData = (int*)selected->data;
-		bool *bData = (bool*)selected->data;
+		boolean *bData = (boolean*)selected->data;
 		int selectedOption = (iData) ? *iData : 0;
 		
 		// TODO: handle skipping blank menu items
@@ -184,7 +258,7 @@ void I_MainMenu() {
 				break;
 				
 			case item_int:
-				if (*iData > selected->min) *iData = (*iData)-1;
+				if (*iData > selected->min) *iData = (*iData) - selected->step;
 				break;
 				
 			case item_bool:
@@ -198,7 +272,7 @@ void I_MainMenu() {
 				break;
 				
 			case item_int:
-				if (*iData < selected->max) *iData = (*iData)+1;
+				if (*iData < selected->max) *iData = (*iData) + selected->step;
 				break;
 				
 			case item_bool:
@@ -226,7 +300,6 @@ void I_MainMenu() {
 		gspWaitForVBlank();
 	}
 
-	// TODO: handle variadic arguments based on other stuff (for warping)
 	I_AddArg(PACKAGE);
 	
 	I_AddArg("-width");
@@ -240,6 +313,39 @@ void I_MainMenu() {
 	
 	I_AddArg("-iwad");
 	I_AddArg(gameWadVals[gameWad]);
+	
+	if (compLevel) {
+		I_AddArg("-complevel");
+		I_AddArgNum(compLevel-1);
+	}
+	
+	if (warpEnable) {
+		I_AddArg("-warp");
+		
+		if (warpEpisode)
+			I_AddArgNum(warpEpisode);
+		I_AddArgNum(warpMap);
+		
+		I_AddArg("-skill");
+		I_AddArgNum(warpSkill);
+		
+		if (gameMode == 1)
+			I_AddArg("-solo-net");
+		else if (gameMode == 2)
+			I_AddArg("-deathmatch");
+		else if (gameMode == 3)
+			I_AddArg("-altdeath");
+			
+		if (noMonsters)
+			I_AddArg("-nomonsters");
+		else if (fastMonsters)
+			I_AddArg("-fast");
+	}
+	
+	if (turbo != 100) {
+		I_AddArg("-turbo");
+		I_AddArgNum(turbo);
+	}
 	
 	gfxExit();
 }
