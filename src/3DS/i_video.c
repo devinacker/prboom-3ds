@@ -414,6 +414,9 @@ void I_PreInitGraphics(void)
 // Calculates the screen resolution, possibly using the supplied guide
 void I_CalculateRes(unsigned int width, unsigned int height)
 {
+  if (width > MAX_SCREENWIDTH) width = MAX_SCREENWIDTH;
+  if (height > MAX_SCREENHEIGHT) height = MAX_SCREENHEIGHT;
+
   SCREENWIDTH = (width+15) & ~15;
   SCREENHEIGHT = height;
   if (!(SCREENWIDTH % 1024)) {

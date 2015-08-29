@@ -66,7 +66,7 @@ typedef struct {
 	int min, max, step; // (for item_int) min and max integer values
 } menuitem_t;
 
-const char *screenWidthVals[] = {"320", /* TODO "400", */ 0};
+const char *screenWidthVals[] = {"320", "400", 0};
 const char *screenHeightVals[] = {"200", "240", 0};
 const char *screenDepthVals[] = {"8", "32", 0};
 
