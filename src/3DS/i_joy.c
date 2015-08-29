@@ -62,7 +62,7 @@ void I_PollJoystick(void) {
 	hidCircleRead(&pos);
 	
 	ev.type = ev_joystick;
-	ev.data1 = 0;
+	ev.data1 = -1;
 	ev.data2 = pos.dx;
 	if (abs(ev.data2) < 50) ev.data2 = 0;
 	ev.data3 = -pos.dy;

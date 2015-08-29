@@ -87,7 +87,7 @@ static boolean mouse_currently_grabbed;
 
 static int I_TranslateKey(uint32_t key)
 {
-  int rc = 0;
+  int rc = -1;
 
   switch (key) {
   case KEY_L: rc = 'l'; break; // 'L' key
@@ -155,7 +155,7 @@ static void I_GetInput() {
 			
 		} else if (held & KEY_TOUCH && (touch.px != px || touch.py != py)) {
 			event.type = ev_mouse;
-			event.data1 = 0;
+			event.data1 = -1;
 			event.data2 = (touch.px - px) << 5;
 			event.data3 = -(touch.py - py) << 5;
 			D_PostEvent(&event);
