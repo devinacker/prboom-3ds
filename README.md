@@ -20,9 +20,9 @@ The default controls are: (subject to change pending testing)
 - Select to show the automap
 - Start to show the main menu
 
-Currently there is no convenient way to select from multiple IWADs or to load additional PWADs and DeHackEd patches. In the future prboom-3ds will have a minimal frontend which will allow you to load additional files and configure other options.
+Currently there is no convenient way to load PWADs and DeHackEd patches. This will be added to the frontend soon.
 
-`prboom.cfg` will be generated at run time; you can edit this manually to change some settings that aren't accessible from within the game, like screen resolution (supported ones are 320x200 and 320x240).
+`prboom.cfg` will be generated at run time; you can edit this manually to change some miscellaneous settings that aren't accessible from the frontend or within the game.
 
 This is also subject to break in weird ways that I don't know about yet. If you see something, say something.
 
