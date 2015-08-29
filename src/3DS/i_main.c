@@ -63,6 +63,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern void I_MainMenu();
+
 /* Most of the following has been rewritten by Lee Killough
  *
  * I_GetTime
@@ -240,13 +242,12 @@ static void I_Quit (void)
 //int main(int argc, const char * const * argv)
 int main(int argc, char **argv)
 {
-
-  myargc = argc;
-  myargv = argv;
-  
   srvInit();
   aptInit();
   hidInit(0);
+  
+  I_MainMenu();
+  
   gfxInitDefault();
 
   /* initialize the console window */
