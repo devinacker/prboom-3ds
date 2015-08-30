@@ -35,15 +35,29 @@
  */
 
 #include <3ds.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include "config.h"
 #include "doomtype.h"
 #include "m_argv.h"
+#include "i_system.h"
+#include "d_main.h"
+#include "z_zone.h" // ensure malloc and free work correctly
 
-char **newargv;
+#define MAX_PWADS 20
+
+char **newargv = 0;
+
+char **filelist = 0;
+int filecount = 0;
+
+char *addfiles[MAX_PWADS] = {0};
+int addfilescount = 0;
 
 // Enum for menu item types
 typedef enum {
@@ -68,28 +82,31 @@ typedef struct {
 
 const char *screenWidthVals[] = {"320", "400", 0};
 const char *screenHeightVals[] = {"200", "240", 0};
-const char *screenDepthVals[] = {"8", "32", 0};
+const char *screenDepthVals[] = {"8", /* "32", */ 0};
 
 int screenWidth = 0;
 int screenHeight = 0;
 int screenDepth = 0;
 
-// TODO: fill this by seeing which ones are actually available
-const char *gameWadVals[] = {"doom.wad", "doom2.wad", "tnt.wad", "plutonia.wad", 0};
+// will be filled by seeing which ones are actually available
+const char *gameWadVals[16] = {0};
 
 int gameWad = 0;
 
 static const menuitem_t menuExtra[];
 
 static const menuitem_t menuMain[] = {
-	{2, "Start game", item_menu, 0, 0, 0},
-	{3, "Extra options...", item_menu, menuExtra, 0, 0},
+	{2, "Start game", item_menu, 0},
+	{3, "Extra options...", item_menu, menuExtra},
 	
-	{5, "Game IWAD", item_choice, &gameWad, 12, gameWadVals},
+	{5, "Game IWAD", item_choice, &gameWad, 13, gameWadVals},
 	
 	{7, "Screen width", item_choice, &screenWidth, 3, screenWidthVals},
 	{8, "Screen height", item_choice, &screenHeight, 3, screenHeightVals},
+	/*
 	{9, "Screen depth (bits)", item_choice, &screenDepth, 3, screenDepthVals},
+	*/
+	{10, "Additional files...", item_file},
 	
 	{-1}
 };
@@ -135,8 +152,8 @@ boolean noMonsters = false;
 boolean fastMonsters = false;
 
 static const menuitem_t menuExtra[] = {
-	{2, "Back...", item_menu, menuMain, 0, 0},
-	{3, "Start game", item_menu, 0, 0, 0},
+	{2, "Back...", item_menu, menuMain},
+	{3, "Start game", item_menu, 0},
 	
 	{5, "Compatibility level", item_choice, &compLevel, 25, compLevelVals},
 	
@@ -155,19 +172,22 @@ static const menuitem_t menuExtra[] = {
 };
 
 void I_Cleanup() {
-	do {
+	while (myargc) {
 		free((void*)newargv[--myargc]);
-	} while (myargc);
-	
+	} 
 	free((void*)newargv);
 	myargv = 0;
+	
+	while (filecount) {
+		free((void*)filelist[--filecount]);
+	}
+	free((void*)filelist);
+	filelist = 0;
 }
 
 void I_AddArg(const char *value) {
 	newargv = realloc(newargv, sizeof(char*) * (myargc + 1));
-	newargv[myargc] = calloc(1 + strlen(value), 1);
-	strcpy(newargv[myargc], value);
-	myargc++;
+	newargv[myargc++] = strdup(value);
 	myargv = (const char* const *)newargv;
 }
 
@@ -177,15 +197,203 @@ void I_AddArgNum(int value) {
 	I_AddArg(str);
 }
 
+void I_AddFile(const char *name) {
+	filelist = realloc(filelist, sizeof(char*) * (filecount + 1));
+	filelist[filecount++] = strdup(name);
+}
+
+void I_AddFileDir(const char *dirname) {
+
+	DIR *dir = opendir(dirname);
+	if (dir) {
+		struct dirent *entry;
+		
+		while (entry = readdir(dir)) {
+			const char *ext = strrchr(entry->d_name, '.');
+			if (ext && ((tolower(ext[1]) == 'w' && tolower(ext[2]) == 'a' && tolower(ext[3]) == 'd')
+			            || (tolower(ext[1]) == 'd' && tolower(ext[2]) == 'e' && tolower(ext[3]) == 'h')))
+				I_AddFile(entry->d_name);
+		}
+		closedir (dir);
+	}
+}
+
+void I_BrowseFiles(int num) {
+	int menupos = 0;
+	int from = 0;
+	const int pagesize = 25;
+
+	while (1) {
+		consoleClear();
+		
+		// draw cursor
+		printf("\x1b[%u;1H> ", menupos+1);
+		
+		// draw all available menu items
+		int i;
+		for (i = 0; i < pagesize && from + i < filecount; i++) {
+			printf("\x1b[%u;3H%s", i+1, filelist[from+i]);
+		}
+		
+		printf("\n\n %d-%d of %d (L/R to page)", from+1, MIN(filecount, from+pagesize), filecount);
+		
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+
+		// handle input for current menu item
+		u32 down = 0;
+		while (!down) {
+			hidScanInput();
+			down = hidKeysDown();
+			gspWaitForVBlank();
+		}
+		
+		if (down & KEY_UP) {
+			if (from && menupos == 0) {
+				from -= pagesize;
+				menupos = pagesize - 1;
+			} else if (menupos > 0) {
+				menupos--;
+			}
+			
+		} else if (down & KEY_DOWN) {
+			if (from + menupos + 1 < filecount && ++menupos >= pagesize) {
+				from += pagesize;
+				menupos = 0;
+			}
+			
+		} else if (down & KEY_A) {
+			addfiles[num] = filelist[from + menupos];
+			if (num == addfilescount) addfilescount++;
+			break;
+		
+		} else if (down & KEY_L) {
+			// page up
+			if (from > 0) {
+				from -= pagesize;
+				if (from < 0) 
+					from = 0;
+			}
+				
+		} else if (down & KEY_R) {
+			// page down
+			if (from + pagesize < filecount) {
+				from += pagesize;
+				if (from + menupos >= filecount) 
+					menupos = filecount - from - 1;
+			}
+			
+		} else if (down & KEY_B) {
+			break;
+		}
+	}
+}
+
+void I_ListFiles() {
+	int menupos = 0;
+
+	while (1) {
+		consoleClear();
+		
+		// draw cursor
+		printf("\x1b[%u;1H> ", menupos+1);
+		
+		// draw all available menu items
+		int i;
+		for (i = 0; i < MAX_PWADS; i++) {
+			printf("\x1b[%u;3H%2u: ", i+1, i+1);
+			
+			// print value
+			if (i == addfilescount)
+				printf("(add new...)");
+			else if (i < addfilescount)
+				printf("%s", addfiles[i]);
+		}
+		
+		printf("\n\n A: select Y: remove L/R: move B: exit");
+		
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+
+		// handle input for current menu item
+		u32 down = 0;
+		while (!down) {
+			hidScanInput();
+			down = hidKeysDown();
+			gspWaitForVBlank();
+		}
+		
+		if (down & KEY_UP) {
+			if (menupos > 0) menupos--;
+			
+		} else if (down & KEY_DOWN) {
+			if (menupos + 1 < MIN(1+addfilescount, MAX_PWADS)) menupos++;
+			
+		} else if (down & KEY_A) {
+			I_BrowseFiles(menupos);
+		
+		} else if (down & KEY_L) {
+			// move file up
+			if (menupos > 0 && menupos < addfilescount) {
+				char *temp = addfiles[menupos - 1];
+				addfiles[menupos - 1] = addfiles[menupos];
+				addfiles[menupos] = temp;
+				menupos--;
+			}
+				
+		} else if (down & KEY_R) {
+			// move file down
+			if (menupos + 1 < addfilescount) {
+				char *temp = addfiles[menupos + 1];
+				addfiles[menupos + 1] = addfiles[menupos];
+				addfiles[menupos] = temp;
+				menupos++;
+			}
+			
+		} else if (down & KEY_Y) {
+			// remove file
+			for (i = menupos; i < addfilescount && i < MAX_PWADS; i++)
+				addfiles[i] = addfiles[i+1];
+			
+			if (addfilescount) {
+				addfiles[addfilescount--] = 0;
+			}
+			
+		} else if (down & KEY_B) {
+			break;
+		}
+	}
+}
+
 void I_MainMenu() {
-	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, 0);
 	myargc = 0; newargv = 0;
+	atexit(I_Cleanup);
 	
 	menuitem_t const *current = menuMain;
 	int menupos = 0;
 	
-	atexit(I_Cleanup);
+	// enumerate available IWADs here
+	int foundIwads = 0;
+	int i;
+	for (i = 0; i < nstandard_iwads; i++) {
+		char *iwad = I_FindFile(standard_iwads[i], "");
+	
+		if (iwad) {
+			gameWadVals[foundIwads++] = standard_iwads[i];
+			free(iwad);
+		}
+	}
+	
+	if (!foundIwads) {
+		// be lazy and just let prboom handle the "no iwads" issue if we couldn't find any
+		return;
+	}
+	
+	// enumerate available PWADs
+	I_AddFileDir(".");
+	I_AddFileDir(I_DoomExeDir());
+	I_AddFileDir(DOOMWADDIR);
 	
 	// TODO: get some defaults from prboom.cfg
 	
@@ -195,16 +403,14 @@ void I_MainMenu() {
 		menuitem_t const *selected = &current[menupos];
 		
 		// draw cursor
-		printf("\x1b[%u;1H--> ", selected->y);
+		printf("\x1b[%u;1H> ", selected->y);
 		
 		// draw all available menu items
 		menuitem_t *i;
 		for (i = current; i->y >= 0; i++) {
-			printf("\x1b[%u;5H%s", i->y, i->text);
+			printf("\x1b[%u;3H%s", i->y, i->text);
 			
 			// print value
-			if (!i->data) continue;
-			
 			int *iData = (int*)i->data;
 			boolean *bData = (boolean*)i->data;
 			
@@ -219,18 +425,29 @@ void I_MainMenu() {
 				hasPrev = *iData ? '<' : ' ';
 				hasNext = i->values[*iData + 1] ? '>' : ' ';
 				
-				printf("\x1b[%u;%uH%c %*s %c", y, 31 - i->width, hasPrev, i->width, i->values[*iData], hasNext);
+				printf("\x1b[%u;%uH%c %*s %c", y, 33 - i->width, hasPrev, i->width, i->values[*iData], hasNext);
 				break;
 				
 			case item_int:
 				hasPrev = (*iData > i->min) ? '<' : ' ';
 				hasNext = (*iData < i->max) ? '>' : ' ';
 			
-				printf("\x1b[%u;%uH%*u", i->y, 33 - i->width, i->width, *iData);
+				printf("\x1b[%u;%uH%*u", i->y, 35 - i->width, i->width, *iData);
 				break;
 				
 			case item_bool:
-				printf("\x1b[%u;30H%3s", i->y, *bData ? "yes" : "no");
+				printf("\x1b[%u;32H%3s", i->y, *bData ? "yes" : "no");
+				break;
+		
+			case item_file:
+				for (y = 0; y < MIN(10, addfilescount); y++)
+					printf("\x1b[%u;3H| %s", i->y + y + 1, addfiles[y]);
+				
+				if (addfilescount >= 10)
+					printf("\x1b[%u;3H| ... (%d more files)", i->y + 10 + 1, addfilescount - 10);
+				else if (!addfilescount)
+					printf("\x1b[%u;3H| none selected", i->y + 1);
+					
 				break;
 			}
 		}
@@ -246,9 +463,9 @@ void I_MainMenu() {
 		// TODO: handle skipping blank menu items
 		u32 down = 0;
 		while (!down) {
-			gspWaitForVBlank();
 			hidScanInput();
 			down = hidKeysDown();
+			gspWaitForVBlank();
 		}
 		
 		if (down & KEY_UP) {
@@ -269,6 +486,7 @@ void I_MainMenu() {
 				
 			case item_bool:
 				*bData = false;
+				break;
 			}
 			
 		} else if (down & KEY_RIGHT && selected->data) {
@@ -283,6 +501,7 @@ void I_MainMenu() {
 				
 			case item_bool:
 				*bData = true;
+				break;
 			}
 		
 		} else if (down & KEY_A) {
@@ -292,6 +511,8 @@ void I_MainMenu() {
 				current = (menuitem_t*)selected->data;
 				menupos = 0;
 				if (!current) break;
+			} else if (selected->type == item_file) {
+				I_ListFiles();
 			}
 		
 		} else if (down & KEY_B) {
@@ -315,6 +536,46 @@ void I_MainMenu() {
 	
 	I_AddArg("-iwad");
 	I_AddArg(gameWadVals[gameWad]);
+	
+	boolean addWad = false;
+	boolean addDeh = false;
+	for (i = 0; i < addfilescount; i++) {
+		char *filename = addfiles[i];
+		
+		const char *ext = strrchr(filename, '.');
+		if (ext && tolower(ext[1]) == 'w' && tolower(ext[2]) == 'a' && tolower(ext[3]) == 'd') {
+			if (!addWad) {
+				addWad = true;
+				I_AddArg("-file");
+			}
+			
+			char *path = I_FindFile(filename, "");
+			if (path) {
+				I_AddArg(path);
+				free(path);
+			} else {
+				I_AddArg(filename);
+			}
+		}
+	}
+	for (i = 0; i < addfilescount; i++) {
+		char *filename = addfiles[i];
+		const char *ext = strrchr(filename, '.');
+		if (ext && tolower(ext[1]) == 'd' && tolower(ext[2]) == 'e' && tolower(ext[3]) == 'h') {
+			if (!addDeh) {
+				addDeh = true;
+				I_AddArg("-deh");
+			}
+			
+			char *path = I_FindFile(filename, "");
+			if (path) {
+				I_AddArg(path);
+				free(path);
+			} else {
+				I_AddArg(filename);
+			}
+		}
+	}
 	
 	if (compLevel) {
 		I_AddArg("-complevel");
@@ -348,6 +609,4 @@ void I_MainMenu() {
 		I_AddArg("-turbo");
 		I_AddArgNum(turbo);
 	}
-	
-	gfxExit();
 }

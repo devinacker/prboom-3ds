@@ -50,8 +50,8 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 # enable MBF helper dogs
 CFLAGS  +=  -DDOGS
-# not currently used
-CFLAGS  +=  -DDOOMWADDIR
+# additional wad lookup dir (default empty)
+CFLAGS  +=  -DDOOMWADDIR=\"./wads\"
 # leave in for debugging purposes for now
 CFLAGS +=   -DRANGECHECK
 

@@ -246,8 +246,6 @@ int main(int argc, char **argv)
   aptInit();
   hidInit(0);
   
-  I_MainMenu();
-  
   gfxInitDefault();
 
   /* initialize the console window */
@@ -275,6 +273,9 @@ int main(int argc, char **argv)
   atexit(I_Quit);
 
   I_SetAffinityMask();
+
+  /* run 3DS frontend */
+  I_MainMenu();
 
   /* cphipps - call to video specific startup code */
   I_PreInitGraphics();

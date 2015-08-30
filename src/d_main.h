@@ -45,6 +45,10 @@
 
 extern char basesavegame[];     // killough 2/16/98: savegame path
 
+// allow IWAD info to be accessed
+extern const char *const standard_iwads[];
+extern const int nstandard_iwads;
+
 //jff 1/24/98 make command line copies of play modes available
 extern boolean clnomonsters; // checkparm of -nomonsters
 extern boolean clrespawnparm;  // checkparm of -respawn

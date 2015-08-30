@@ -109,6 +109,7 @@ boolean I_StartDisplay(void)
 void I_EndDisplay(void)
 {
   displaytime = osGetTime() - start_displaytime;
+  // lprintf(LO_DEBUG, "\x1b[0;0Hdisplaytime = %5u \n", displaytime);
   InDisplay = false;
 }
 
@@ -285,16 +286,7 @@ char* I_FindFile(const char* wfname, const char* ext)
   } search[] = {
     {NULL}, // current working directory
     {NULL, NULL, NULL, I_DoomExeDir}, // config directory
-	/* TODO for 3DS
-    {NULL, NULL, "DOOMWADDIR"}, // run-time $DOOMWADDIR
     {DOOMWADDIR}, // build-time configured DOOMWADDIR
-    {NULL, "doom", "HOME"}, // ~/doom
-    {NULL, NULL, "HOME"}, // ~
-    {"/usr/local/share/games/doom"},
-    {"/usr/share/games/doom"},
-    {"/usr/local/share/doom"},
-    {"/usr/share/doom"},
-	*/
   };
 
   int   i;

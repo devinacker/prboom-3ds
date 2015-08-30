@@ -2847,8 +2847,7 @@ enum {
 #define G_YA3 (G_YA2+5*8)
 #define GF_X 76
 
-/* TODO for 3DS: re-enable high color rendering */
-static const char *videomodes[] = {"8bit", "32bit", NULL};
+static const char *videomodes[] = {"8bit", /* "32bit", */ NULL};
 
 static const char *gltexfilters[] = {"GL_NEAREST","GL_LINEAR",
                                      "GL_LINEAR_MIPMAP_LINEAR",

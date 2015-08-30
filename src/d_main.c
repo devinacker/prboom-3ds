@@ -126,16 +126,19 @@ char    basesavegame[PATH_MAX+1];  // killough 2/16/98: savegame directory
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
 {
-  "doom2f.wad",
-  "doom2.wad",
-  "plutonia.wad",
-  "tnt.wad",
-  "doom.wad",
   "doom1.wad",
+  "doom.wad",
   "doomu.wad", /* CPhipps - alow doomu.wad */
+  "doom2.wad",
+  "doom2f.wad",
+  "tnt.wad",
+  "plutonia.wad",
+  "freedoom1.wad",
+  "freedoom2.wad",
   "freedoom.wad", /* wart@kobold.org:  added freedoom for Fedora Extras */
+  "freedm.wad",
 };
-static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
+const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
 /*
  * D_PostEvent - Event handling

@@ -20,7 +20,7 @@ The default controls are: (subject to change pending testing)
 - Select to show the automap
 - Start to show the main menu
 
-Currently there is no convenient way to load PWADs and DeHackEd patches. This will be added to the frontend soon.
+PWADs and DeHackEd patches can be loaded through the frontend, which also allows you to customize some other pre-game settings (such as starting episode/map, skill level, game mode, etc.).
 
 `prboom.cfg` will be generated at run time; you can edit this manually to change some miscellaneous settings that aren't accessible from the frontend or within the game.
 
