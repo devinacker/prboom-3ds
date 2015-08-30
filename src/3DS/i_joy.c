@@ -57,6 +57,7 @@ int usejoystick;
 void I_PollJoystick(void) {
 	event_t ev;
 	circlePosition pos;
+	static boolean moving = false;
 	
 	if (!usejoystick) return;
 	hidCircleRead(&pos);
@@ -68,7 +69,10 @@ void I_PollJoystick(void) {
 	ev.data3 = -pos.dy;
 	if (abs(ev.data3) < 50) ev.data3 = 0;
 	
-	D_PostEvent(&ev);
+	if (moving || ev.data2 || ev.data3)
+		D_PostEvent(&ev);
+		
+	moving = ev.data2 || ev.data3;
 }
 
 void I_InitJoystick(void) {
