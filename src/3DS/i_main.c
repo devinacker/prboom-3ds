@@ -58,6 +58,7 @@
 #include "i_main.h"
 #include "r_fps.h"
 #include "lprintf.h"
+#include "z_zone.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -145,36 +146,47 @@ static void I_SignalHandler(int s)
 
 
 
-/* killough 2/22/98: Add support for ENDBOOM, which is PC-specific
- *
- * this converts BIOS color codes to ANSI codes.
- * Its not pretty, but it does the job - rain
- * CPhipps - made static
+/* convert BIOS color codes to RGB
  */
 
 inline static int convert(int color, int *bold)
 {
-  if (color > 7) {
-    color -= 8;
+  if (bold && color > 7) {
     *bold = 1;
   }
   switch (color) {
-  case 0:
-    return 0;
-  case 1:
-    return 4;
-  case 2:
-    return 2;
-  case 3:
-    return 6;
-  case 4:
-    return 1;
-  case 5:
-    return 5;
-  case 6:
-    return 3;
-  case 7:
-    return 7;
+  case 0: // black
+    return 0x000000;
+  case 1: // blue
+    return 0x0000AA;
+  case 2: // green
+    return 0x00AA00;
+  case 3: // cyan
+    return 0x00AAAA;
+  case 4: // red
+    return 0xAA0000;
+  case 5: // magenta
+    return 0xAA00AA;
+  case 6: // brown
+    return 0xAA5500;
+  case 7: // light grey
+    return 0xAAAAAA;
+  case 8: // grey
+    return 0x555555;
+  case 9: // light blue
+    return 0x5555ff;
+  case 10: // light green
+    return 0x55ff55;
+  case 11: // light cyan
+    return 0x55ffff;
+  case 12: // light red
+    return 0xff5555;
+  case 13: // light magenta
+    return 0xff55ff;
+  case 14: // yellow
+    return 0xffff55;
+  case 15: // white
+    return 0xffffff;
   }
   return 0;
 }
@@ -195,12 +207,73 @@ static void PrintVer(void)
 }
 
 /* I_EndDoom
- * Prints out ENDOOM or ENDBOOM, using some common sense to decide which.
+ * Prints out ENDOOM.
  * cphipps - moved to l_main.c, made static
  */
+extern const char endoom_font[];
+ 
 static void I_EndDoom(void)
 {
-	/* TODO for 3DS */
+	consoleClear();
+	
+	int lump = W_CheckNumForName("ENDOOM");
+	if (lump == -1) return;
+
+	PrintVer();
+	lprintf(LO_INFO, "press any button to quit\n");
+
+	const char (*endoom)[2] = (const void*)W_CacheLumpNum(lump);
+	int l = W_LumpLength(lump) / 2;
+
+	/* drop the last line, so everything fits on one screen */
+	l -= 80;
+
+	char *screen = malloc(400 * 240 * 3);
+	
+	int i, x, y;
+	for (i = 0; i < l; i++) {
+		int r = i / 80;
+		int c = i % 80;
+		
+		char chr = endoom[i][0];
+		
+		int fg = convert(endoom[i][1] & 0xf, 0);
+		int bg = convert((endoom[i][1] >> 4) & 0x7, 0);
+		
+		// TODO
+		int blink = endoom[i][1] & 0x80;
+		
+		// source font character
+		const char *fc = endoom_font + (chr * 10);
+		
+		// draw font character
+		for (y = 0; y < 10; y++) {
+			for (x = 0; x < 5; x++) {
+				// destination pixel
+				int px = (c * 5) + x;
+				int py = (r * 10) + y;
+				
+				char *dest = screen + ((px * 240 + (240 - py - 1)) * 3);
+			
+				int color = (fc[y] >> (7-x)) & 1 ? fg : bg;
+				dest[0] = color;
+				dest[1] = color >> 8;
+				dest[2] = color >> 16;
+			}
+		}
+	}
+
+	uint16_t width, height;
+
+	while (hidScanInput(), !hidKeysDown()) {
+		char *fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
+		memcpy(fb, screen, width * height * 3);
+		gfxSwapBuffers();
+		gspWaitForVBlank();
+	}
+
+	free(screen);
+	W_UnlockLumpNum(lump);
 }
 
 static int has_exited;

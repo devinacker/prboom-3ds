@@ -177,11 +177,7 @@ unsigned long I_GetRandomTimeSeed(void)
  */
 const char* I_GetVersionString(char* buf, size_t sz)
 {
-#ifdef HAVE_SNPRINTF
-  snprintf(buf,sz,"%s v%s (http://prboom.sourceforge.net/)",PACKAGE,VERSION);
-#else
-  sprintf(buf,"%s v%s (http://prboom.sourceforge.net/)",PACKAGE,VERSION);
-#endif
+  snprintf(buf,sz,"%s v%s\nhttp://github.com/devinacker/prboom-3ds",PACKAGE,VERSION);
   return buf;
 }
 
