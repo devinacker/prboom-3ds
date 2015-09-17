@@ -548,6 +548,9 @@ void I_ShutdownMusic(void)
 
 void I_InitMusic(void)
 {
+	/* TODO for 3DS */
+	return;
+
 #ifdef HAVE_MIXER
   if (!music_tmp) {
 #ifndef _WIN32
@@ -640,8 +643,8 @@ int I_RegisterSong(const void *data, size_t len)
 int I_RegisterMusic( const char* filename, musicinfo_t *song )
 {
 /* TODO for 3DS
-  return 1;
 */
+  return 1;
 }
 
 void I_SetMusicVolume(int volume)

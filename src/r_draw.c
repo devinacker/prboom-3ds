@@ -1005,22 +1005,24 @@ void R_InitBuffer(int width, int height)
 
   viewwindowy = width==SCREENWIDTH ? 0 : (SCREENHEIGHT-(ST_SCALED_HEIGHT-1)-height)>>1;
 
-  drawvars.byte_topleft = screens[0].data + viewwindowy*screens[0].byte_pitch + viewwindowx;
-  drawvars.short_topleft = (unsigned short *)(screens[0].data) + viewwindowy*screens[0].short_pitch + viewwindowx;
-  drawvars.int_topleft = (unsigned int *)(screens[0].data) + viewwindowy*screens[0].int_pitch + viewwindowx;
-  drawvars.byte_pitch = screens[0].byte_pitch;
-  drawvars.short_pitch = screens[0].short_pitch;
-  drawvars.int_pitch = screens[0].int_pitch;
+  // TODO: update for both sides of top screen
+
+  drawvars.byte_topleft = screens[SCR_FRONT_L].data + viewwindowy*screens[SCR_FRONT_L].byte_pitch + viewwindowx;
+  drawvars.short_topleft = (unsigned short *)(screens[SCR_FRONT_L].data) + viewwindowy*screens[SCR_FRONT_L].short_pitch + viewwindowx;
+  drawvars.int_topleft = (unsigned int *)(screens[SCR_FRONT_L].data) + viewwindowy*screens[SCR_FRONT_L].int_pitch + viewwindowx;
+  drawvars.byte_pitch = screens[SCR_FRONT_L].byte_pitch;
+  drawvars.short_pitch = screens[SCR_FRONT_L].short_pitch;
+  drawvars.int_pitch = screens[SCR_FRONT_L].int_pitch;
 
   if (V_GetMode() == VID_MODE8) {
     for (i=0; i<FUZZTABLE; i++)
-      fuzzoffset[i] = fuzzoffset_org[i]*screens[0].byte_pitch;
+      fuzzoffset[i] = fuzzoffset_org[i]*screens[SCR_FRONT_L].byte_pitch;
   } else if ((V_GetMode() == VID_MODE15) || (V_GetMode() == VID_MODE16)) {
     for (i=0; i<FUZZTABLE; i++)
-      fuzzoffset[i] = fuzzoffset_org[i]*screens[0].short_pitch;
+      fuzzoffset[i] = fuzzoffset_org[i]*screens[SCR_FRONT_L].short_pitch;
   } else if (V_GetMode() == VID_MODE32) {
     for (i=0; i<FUZZTABLE; i++)
-      fuzzoffset[i] = fuzzoffset_org[i]*screens[0].int_pitch;
+      fuzzoffset[i] = fuzzoffset_org[i]*screens[SCR_FRONT_L].int_pitch;
   }
 }
 
@@ -1039,28 +1041,28 @@ void R_FillBackScreen (void)
   if (scaledviewwidth == SCREENWIDTH)
     return;
 
-  V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2", 1);
+  V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2", SCR_BACK);
 
   for (x=0; x<scaledviewwidth; x+=8)
-    V_DrawNamePatch(viewwindowx+x,viewwindowy-8,1,"brdr_t", CR_DEFAULT, VPT_NONE);
+    V_DrawNamePatch(viewwindowx+x,viewwindowy-8,SCR_BACK,"brdr_t", CR_DEFAULT, VPT_NONE);
 
   for (x=0; x<scaledviewwidth; x+=8)
-    V_DrawNamePatch(viewwindowx+x,viewwindowy+viewheight,1,"brdr_b", CR_DEFAULT, VPT_NONE);
+    V_DrawNamePatch(viewwindowx+x,viewwindowy+viewheight,SCR_BACK,"brdr_b", CR_DEFAULT, VPT_NONE);
 
   for (y=0; y<viewheight; y+=8)
-    V_DrawNamePatch(viewwindowx-8,viewwindowy+y,1,"brdr_l", CR_DEFAULT, VPT_NONE);
+    V_DrawNamePatch(viewwindowx-8,viewwindowy+y,SCR_BACK,"brdr_l", CR_DEFAULT, VPT_NONE);
 
   for (y=0; y<viewheight; y+=8)
-    V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy+y,1,"brdr_r", CR_DEFAULT, VPT_NONE);
+    V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy+y,SCR_BACK,"brdr_r", CR_DEFAULT, VPT_NONE);
 
   // Draw beveled edge.
-  V_DrawNamePatch(viewwindowx-8,viewwindowy-8,1,"brdr_tl", CR_DEFAULT, VPT_NONE);
+  V_DrawNamePatch(viewwindowx-8,viewwindowy-8,SCR_BACK,"brdr_tl", CR_DEFAULT, VPT_NONE);
 
-  V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy-8,1,"brdr_tr", CR_DEFAULT, VPT_NONE);
+  V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy-8,SCR_BACK,"brdr_tr", CR_DEFAULT, VPT_NONE);
 
-  V_DrawNamePatch(viewwindowx-8,viewwindowy+viewheight,1,"brdr_bl", CR_DEFAULT, VPT_NONE);
+  V_DrawNamePatch(viewwindowx-8,viewwindowy+viewheight,SCR_BACK,"brdr_bl", CR_DEFAULT, VPT_NONE);
 
-  V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy+viewheight,1,"brdr_br", CR_DEFAULT, VPT_NONE);
+  V_DrawNamePatch(viewwindowx+scaledviewwidth,viewwindowy+viewheight,SCR_BACK,"brdr_br", CR_DEFAULT, VPT_NONE);
 }
 
 //
@@ -1069,10 +1071,14 @@ void R_FillBackScreen (void)
 
 void R_VideoErase(int x, int y, int count)
 {
-  if (V_GetMode() != VID_MODEGL)
-    memcpy(screens[0].data+y*screens[0].byte_pitch+x*V_GetPixelDepth(),
-           screens[1].data+y*screens[1].byte_pitch+x*V_GetPixelDepth(),
+  if (V_GetMode() != VID_MODEGL) {
+    memcpy(screens[SCR_FRONT_L].data+y*screens[SCR_FRONT_L].byte_pitch+x*V_GetPixelDepth(),
+           screens[SCR_BACK].data+y*screens[SCR_BACK].byte_pitch+x*V_GetPixelDepth(),
            count*V_GetPixelDepth());   // LFB copy.
+    memcpy(screens[SCR_FRONT_R].data+y*screens[SCR_FRONT_R].byte_pitch+x*V_GetPixelDepth(),
+           screens[SCR_BACK].data+y*screens[SCR_BACK].byte_pitch+x*V_GetPixelDepth(),
+           count*V_GetPixelDepth());   // LFB copy.
+   }
 }
 
 //

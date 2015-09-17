@@ -300,7 +300,8 @@ static void I_Quit (void)
     has_exited=1;   /* Prevent infinitely recursive exits -- killough */
 
   if (has_exited == 1) {
-    I_EndDoom();
+	Init_ConsoleWin();
+	I_EndDoom();
     if (demorecording)
       G_CheckDemoStatus();
     M_SaveDefaults ();
@@ -349,6 +350,7 @@ int main(int argc, char **argv)
 
   /* run 3DS frontend */
   I_MainMenu();
+  consoleClear();
 
   /* cphipps - call to video specific startup code */
   I_PreInitGraphics();

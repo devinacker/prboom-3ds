@@ -85,7 +85,17 @@ typedef struct {
   int int_pitch;       // tha actual width of one line, used when mallocing
 } screeninfo_t;
 
-#define NUM_SCREENS 6
+typedef enum {
+  SCR_FRONT_L,
+  SCR_FRONT_R,
+  SCR_BOTTOM,
+  SCR_BACK,
+  SCR_WIPE_SRC,
+  SCR_WIPE_DEST,
+  SCR_STBAR,
+  NUM_SCREENS
+} screennum_t;
+
 extern screeninfo_t screens[NUM_SCREENS];
 extern int          usegamma;
 

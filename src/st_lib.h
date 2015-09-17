@@ -41,8 +41,9 @@
 //
 // Background and foreground screen numbers
 //
-#define BG 4
-#define FG 0
+#define BG SCR_STBAR
+#define FG_L SCR_FRONT_L
+#define FG_R SCR_FRONT_R
 
 //
 // Typedefs of widgets

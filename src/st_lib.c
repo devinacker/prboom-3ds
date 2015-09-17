@@ -133,7 +133,8 @@ static void STlib_drawNum
     I_Error("STlib_drawNum: n->y - ST_Y < 0");
 #endif
 
-  V_CopyRect(x, n->y - ST_Y, BG, w*numdigits, h, x, n->y, FG, VPT_STRETCH);
+  V_CopyRect(x, n->y - ST_Y, BG, w*numdigits, h, x, n->y, FG_L, VPT_STRETCH);
+  V_CopyRect(x, n->y - ST_Y, BG, w*numdigits, h, x, n->y, FG_R, VPT_STRETCH);
 
   // if non-number, do not draw it
   if (num == 1994)
@@ -143,17 +144,21 @@ static void STlib_drawNum
 
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
-  if (!num)
+  if (!num) {
     // CPhipps - patch drawing updated, reformatted
-    V_DrawNumPatch(x - w, n->y, FG, n->p[0].lumpnum, cm,
+    V_DrawNumPatch(x - w, n->y, FG_L, n->p[0].lumpnum, cm,
        (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
-
+	V_DrawNumPatch(x - w, n->y, FG_R, n->p[0].lumpnum, cm,
+       (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
+  }
   // draw the new number
   //jff 2/16/98 add color translation to digit output
   while (num && numdigits--) {
     // CPhipps - patch drawing updated, reformatted
     x -= w;
-    V_DrawNumPatch(x, n->y, FG, n->p[num % 10].lumpnum, cm,
+    V_DrawNumPatch(x, n->y, FG_L, n->p[num % 10].lumpnum, cm,
+       (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
+    V_DrawNumPatch(x, n->y, FG_R, n->p[num % 10].lumpnum, cm,
        (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
     num /= 10;
   }
@@ -161,9 +166,12 @@ static void STlib_drawNum
   // draw a minus sign if necessary
   //jff 2/16/98 add color translation to digit output
   // cph - patch drawing updated, load by name instead of acquiring pointer earlier
-  if (neg)
-    V_DrawNamePatch(x - w, n->y, FG, "STTMINUS", cm,
+  if (neg) {
+    V_DrawNamePatch(x - w, n->y, FG_L, "STTMINUS", cm,
        (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
+    V_DrawNamePatch(x - w, n->y, FG_R, "STTMINUS", cm,
+       (((cm!=CR_DEFAULT) && !sts_always_red) ? VPT_TRANS : VPT_NONE) | VPT_STRETCH);
+  }
 }
 
 /*
@@ -229,7 +237,10 @@ void STlib_updatePercent
     // killough 2/21/98: fix percents not updated;
     /* CPhipps - make %'s only be updated if number changed */
     // CPhipps - patch drawing updated
-    V_DrawNumPatch(per->n.x, per->n.y, FG, per->p->lumpnum,
+    V_DrawNumPatch(per->n.x, per->n.y, FG_L, per->p->lumpnum,
+       sts_pct_always_gray ? CR_GRAY : cm,
+       (sts_always_red ? VPT_NONE : VPT_TRANS) | VPT_STRETCH);
+	V_DrawNumPatch(per->n.x, per->n.y, FG_R, per->p->lumpnum,
        sts_pct_always_gray ? CR_GRAY : cm,
        (sts_always_red ? VPT_NONE : VPT_TRANS) | VPT_STRETCH);
   }
@@ -296,10 +307,13 @@ void STlib_updateMultIcon
         I_Error("STlib_updateMultIcon: y - ST_Y < 0");
 #endif
 
-      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG, VPT_STRETCH);
+      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG_L, VPT_STRETCH);
+      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG_R, VPT_STRETCH);
     }
-    if (*mi->inum != -1)  // killough 2/16/98: redraw only if != -1
-      V_DrawNumPatch(mi->x, mi->y, FG, mi->p[*mi->inum].lumpnum, CR_DEFAULT, VPT_STRETCH);
+    if (*mi->inum != -1) { // killough 2/16/98: redraw only if != -1
+      V_DrawNumPatch(mi->x, mi->y, FG_L, mi->p[*mi->inum].lumpnum, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNumPatch(mi->x, mi->y, FG_R, mi->p[*mi->inum].lumpnum, CR_DEFAULT, VPT_STRETCH);
+    }
     mi->oldinum = *mi->inum;
   }
 }
@@ -364,11 +378,13 @@ void STlib_updateBinIcon
       I_Error("STlib_updateBinIcon: y - ST_Y < 0");
 #endif
 
-    if (*bi->val)
-      V_DrawNumPatch(bi->x, bi->y, FG, bi->p->lumpnum, CR_DEFAULT, VPT_STRETCH);
-    else
-      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG, VPT_STRETCH);
-
+    if (*bi->val) {
+      V_DrawNumPatch(bi->x, bi->y, FG_L, bi->p->lumpnum, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNumPatch(bi->x, bi->y, FG_R, bi->p->lumpnum, CR_DEFAULT, VPT_STRETCH);
+    } else {
+      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG_L, VPT_STRETCH);
+      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG_R, VPT_STRETCH);
+    }
     bi->oldval = *bi->val;
   }
 }

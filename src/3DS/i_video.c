@@ -182,8 +182,14 @@ void I_StartTic (void)
 //
 void I_StartFrame (void)
 {
-  // TODO: keep the automap enabled
-  // automapmode |= am_active;
+  // TODO: less hacky way to do this, make the "automap" key toggle something else instead
+  if (gamestate == GS_LEVEL) {
+	  // if (!(automapmode & am_active)) {
+		AM_Start();
+	  // }
+  } else {
+	AM_Stop();
+  }
 }
 
 //
@@ -371,9 +377,10 @@ void I_FinishUpdate (void)
 
 	// TODO: use enums for screen numbers and apply them where appropriate
 	// main game on top screen (TODO: both sides)
-	I_TranslateFrameBuffer(0, GFX_TOP, GFX_LEFT, -1, -1);
-	// TODO: automap on bottom screen
-	// I_TranslateFrameBuffer(0, GFX_BOTTOM, 0, -1);
+	I_TranslateFrameBuffer(SCR_FRONT_L, GFX_TOP, GFX_LEFT, -1, -1);
+	// I_TranslateFrameBuffer(SCR_FRONT_R, GFX_TOP, GFX_RIGHT, -1, -1);
+	// automap on bottom screen
+	I_TranslateFrameBuffer(SCR_BOTTOM, GFX_BOTTOM, 0, -1, -1);
 	
 	/* Update the display buffer (flipping video pages if supported)
 	 * If we need to change palette, that implicitely does a flip */
@@ -403,10 +410,7 @@ void I_SetPalette (int pal)
 
 void I_PreInitGraphics(void)
 {
-  // currently done in main
-  // gfxInitDefault();
-  
-  /* TODO for 3DS */
+  // ...
 }
 
 // CPhipps -
@@ -436,7 +440,7 @@ void I_SetRes(void)
   I_CalculateRes(SCREENWIDTH, SCREENHEIGHT);
 
   // set first three to standard values
-  for (i=0; i<3; i++) {
+  for (i=0; i<NUM_SCREENS; i++) {
     screens[i].width = SCREENWIDTH;
     screens[i].height = SCREENHEIGHT;
     screens[i].byte_pitch = SCREENPITCH;
@@ -445,11 +449,18 @@ void I_SetRes(void)
   }
 
   // statusbar
-  screens[4].width = SCREENWIDTH;
-  screens[4].height = (ST_SCALED_HEIGHT+1);
-  screens[4].byte_pitch = SCREENPITCH;
-  screens[4].short_pitch = SCREENPITCH / V_GetModePixelDepth(VID_MODE16);
-  screens[4].int_pitch = SCREENPITCH / V_GetModePixelDepth(VID_MODE32);
+  screens[SCR_STBAR].width = SCREENWIDTH;
+  screens[SCR_STBAR].height = (ST_SCALED_HEIGHT+1);
+  screens[SCR_STBAR].byte_pitch = SCREENPITCH;
+  screens[SCR_STBAR].short_pitch = SCREENPITCH / V_GetModePixelDepth(VID_MODE16);
+  screens[SCR_STBAR].int_pitch = SCREENPITCH / V_GetModePixelDepth(VID_MODE32);
+  
+  // automap
+  screens[SCR_BOTTOM].width = 320;
+  screens[SCR_BOTTOM].height = SCREENHEIGHT;
+  screens[SCR_BOTTOM].byte_pitch = 320 * V_GetPixelDepth();
+  screens[SCR_BOTTOM].short_pitch = screens[SCR_BOTTOM].byte_pitch / V_GetModePixelDepth(VID_MODE16);
+  screens[SCR_BOTTOM].int_pitch = screens[SCR_BOTTOM].byte_pitch / V_GetModePixelDepth(VID_MODE32);
 
   lprintf(LO_INFO,"I_SetRes: Using resolution %dx%d\n", SCREENWIDTH, SCREENHEIGHT);
 }
@@ -508,11 +519,11 @@ void I_UpdateVideoMode(void)
   // reset video modes
   gfxExit();
   // disable console
-  // Done_ConsoleWin();
-  // gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
+  Done_ConsoleWin();
+  gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
   I_ClearFrameBuffer(GFX_TOP, GFX_LEFT);
   I_ClearFrameBuffer(GFX_TOP, GFX_RIGHT);
-  // I_ClearFrameBuffer(GFX_BOTTOM, 0);
+  I_ClearFrameBuffer(GFX_BOTTOM, 0);
   
   V_InitMode(mode);
   V_DestroyUnusedTrueColorPalettes();

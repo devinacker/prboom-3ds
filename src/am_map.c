@@ -83,7 +83,7 @@ int map_secret_after;
 #define BC 247
 
 // drawing stuff
-#define FB    0
+#define FB    SCR_BOTTOM
 
 // scale on entry
 #define INITSCALEMTOF (.2*FRACUNIT)
@@ -425,7 +425,7 @@ static void AM_changeWindowLoc(void)
 static void AM_initVariables(void)
 {
   int pnum;
-  static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
+  // static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
 
   automapmode |= am_active;
 
@@ -444,6 +444,10 @@ static void AM_initVariables(void)
     if (playeringame[pnum])
   break;
 
+  // no player mobj = bail
+  if (!(players[pnum].mo))
+	return;
+  
   plr = &players[pnum];
   m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;//e6y
   m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;//e6y
@@ -456,7 +460,7 @@ static void AM_initVariables(void)
   old_m_h = m_h;
 
   // inform the status bar of the change
-  ST_Responder(&st_notify);
+  // ST_Responder(&st_notify);
 }
 
 //
@@ -503,8 +507,8 @@ static void AM_LevelInit(void)
   leveljuststarted = 0;
 
   f_x = f_y = 0;
-  f_w = SCREENWIDTH;           // killough 2/7/98: get rid of finit_ vars
-  f_h = SCREENHEIGHT-ST_SCALED_HEIGHT;// to allow runtime setting of width/height
+  f_w = screens[SCR_BOTTOM].width;           // killough 2/7/98: get rid of finit_ vars
+  f_h = screens[SCR_BOTTOM].height;	// to allow runtime setting of width/height
 
   AM_findMinMaxBoundaries();
   scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
@@ -522,11 +526,11 @@ static void AM_LevelInit(void)
 //
 void AM_Stop (void)
 {
-  static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
+  // static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
 
   AM_unloadPics();
   automapmode &= ~am_active;
-  ST_Responder(&st_notify);
+  // ST_Responder(&st_notify);
   stopped = true;
 }
 
@@ -1520,11 +1524,11 @@ static void AM_drawMarks(void)
           fx++;
 
         if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h) {
-    // cph - construct patch name and draw marker
-    char namebuf[] = { 'A', 'M', 'M', 'N', 'U', 'M', '0'+d, 0 };
+          // cph - construct patch name and draw marker
+          char namebuf[] = { 'A', 'M', 'M', 'N', 'U', 'M', '0'+d, 0 };
 
           V_DrawNamePatch(fx, fy, FB, namebuf, CR_DEFAULT, VPT_NONE);
-  }
+		}
         fx -= w-1;          // killough 2/22/98: 1 space backwards
         j /= 10;
       }
@@ -1568,11 +1572,13 @@ inline static void AM_drawCrosshair(int color)
 //
 void AM_Drawer (void)
 {
+  // TODO: if overlay mode, put automap on top screen (and bottom?)
+  if (!(automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
+    V_FillRect(FB, f_x, f_y, f_w, f_h, (byte)mapcolor_back); //jff 1/5/98 background default color
+	
   // CPhipps - all automap modes put into one enum
   if (!(automapmode & am_active)) return;
 
-  if (!(automapmode & am_overlay)) // cph - If not overlay mode, clear background for the automap
-    V_FillRect(FB, f_x, f_y, f_w, f_h, (byte)mapcolor_back); //jff 1/5/98 background default color
   if (automapmode & am_grid)
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color
   AM_drawWalls();

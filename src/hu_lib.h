@@ -40,8 +40,8 @@
 
 /* background and foreground screen numbers
  * different from other modules. */
-#define BG      1
-#define FG      0
+#define BG      SCR_BOTTOM
+#define FG      SCR_FRONT_L
 
 /* font stuff
  * #define HU_CHARERASE    KEYD_BACKSPACE / not used               / phares
@@ -64,6 +64,7 @@ typedef struct
   // left-justified position of scrolling text window
   int   x;
   int   y;
+  int   scr;
 
   const patchnum_t* f;                    // font
   int   sc;                             // start character

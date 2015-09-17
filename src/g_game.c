@@ -699,7 +699,7 @@ boolean G_Responder (event_t* ev)
       // Don't suck up keys, which may be cheats
 
       return gamestate == GS_DEMOSCREEN &&
-  !(paused & 2) && !(automapmode & am_active) &&
+  !(paused & 2) &&
   ((ev->type == ev_keydown) ||
    (ev->type == ev_mouse && ev->data1) ||
    (ev->type == ev_joystick && ev->data1)) ?

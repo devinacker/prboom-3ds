@@ -64,10 +64,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_TITLET (*mapnamest[gamemap-1])
 #define HU_TITLEHEIGHT  1
 #define HU_TITLEX 0
-//jff 2/16/98 change 167 to ST_Y-1
-// CPhipps - changed to ST_TY
-// proff - changed to 200-ST_HEIGHT for stretching
-#define HU_TITLEY ((200-ST_HEIGHT) - 1 - hu_font[0].height)
+#define HU_TITLEY (200 - 1 - hu_font[0].height)
 
 //jff 2/16/98 add coord text widget coordinates
 // proff - changed to SCREENWIDTH to 320 for stretching
@@ -429,6 +426,7 @@ void HU_Start(void)
     HU_FONTSTART,
     hudcolor_titl
   );
+  w_title.scr = SCR_BOTTOM;
 
   // create the hud health widget
   // bargraph and number for amount of health,

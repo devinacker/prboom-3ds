@@ -116,24 +116,31 @@ static void FUNC_V_CopyRect(int srcx, int srcy, int srcscrn, int width,
   byte *src;
   byte *dest;
 
+  // since we may be drawing to multiple screens with different sizes,
+  // don't use the global height/width
+  int srcheight = SCREENHEIGHT;
+  int srcwidth = screens[srcscrn].width;
+  int destheight = SCREENHEIGHT;
+  int destwidth = screens[destscrn].width;
+
   if (flags & VPT_STRETCH)
   {
-    srcx=srcx*SCREENWIDTH/320;
-    srcy=srcy*SCREENHEIGHT/200;
-    width=width*SCREENWIDTH/320;
-    height=height*SCREENHEIGHT/200;
-    destx=destx*SCREENWIDTH/320;
-    desty=desty*SCREENHEIGHT/200;
+    srcx=srcx*srcwidth/320;
+    srcy=srcy*srcheight/200;
+    width=width*srcwidth/320;
+    height=height*srcheight/200;
+    destx=destx*destwidth/320;
+    desty=desty*destheight/200;
   }
 
 #ifdef RANGECHECK
   if (srcx<0
-      ||srcx+width >SCREENWIDTH
+      ||srcx+width >srcwidth
       || srcy<0
-      || srcy+height>SCREENHEIGHT
-      ||destx<0||destx+width >SCREENWIDTH
+      || srcy+height>srcheight
+      ||destx<0||destx+width >destwidth
       || desty<0
-      || desty+height>SCREENHEIGHT)
+      || desty+height>destheight)
     I_Error ("V_CopyRect: Bad arguments");
 #endif
 
@@ -161,6 +168,9 @@ static void FUNC_V_DrawBackground(const char* flatname, int scrn)
   int         x,y;
   int         width,height;
   int         lump;
+
+  int screenheight = screens[scrn].height;
+  int screenwidth = screens[scrn].width;
 
   // killough 4/17/98:
   src = W_CacheLumpNum(lump = firstflat + R_FlatNumForName(flatname));
@@ -211,10 +221,10 @@ static void FUNC_V_DrawBackground(const char* flatname, int scrn)
   }
   /* end V_DrawBlock */
 
-  for (y=0 ; y<SCREENHEIGHT ; y+=64)
-    for (x=y ? 0 : 64; x<SCREENWIDTH ; x+=64)
-      V_CopyRect(0, 0, scrn, ((SCREENWIDTH-x) < 64) ? (SCREENWIDTH-x) : 64,
-     ((SCREENHEIGHT-y) < 64) ? (SCREENHEIGHT-y) : 64, x, y, scrn, VPT_NONE);
+  for (y=0 ; y<screenheight; y+=64)
+    for (x=y ? 0 : 64; x<screenwidth ; x+=64)
+      V_CopyRect(0, 0, scrn, ((screenwidth-x) < 64) ? (screenwidth-x) : 64,
+     ((screenheight-y) < 64) ? (screenheight-y) : 64, x, y, scrn, VPT_NONE);
   W_UnlockLumpNum(lump);
 }
 
@@ -257,6 +267,11 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
         int cm, enum patch_translation_e flags)
 {
   const byte *trans;
+  
+  // since we may be drawing to multiple screens with different sizes,
+  // don't use the global height/width
+  int screenheight = SCREENHEIGHT; // screens[scrn].height;
+  int screenwidth = screens[scrn].width;
 
   if (cm<CR_LIMIT)
     trans=colrngs[cm];
@@ -267,9 +282,9 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
 
   // CPhipps - auto-no-stretch if not high-res
   if (flags & VPT_STRETCH)
-    if ((SCREENWIDTH==320) && (SCREENHEIGHT==200))
+    if ((screenwidth==320) && (screenheight==200))
       flags &= ~VPT_STRETCH;
-
+  
   // CPhipps - null translation pointer => no translation
   if (!trans)
     flags &= ~VPT_TRANS;
@@ -279,7 +294,7 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
     byte           *desttop = screens[scrn].data+y*screens[scrn].byte_pitch+x*V_GetPixelDepth();
     unsigned int    w = patch->width;
 
-    if (y<0 || y+patch->height > ((flags & VPT_STRETCH) ? 200 :  SCREENHEIGHT)) {
+    if (y<0 || y+patch->height > ((flags & VPT_STRETCH) ? 200 :  screenheight)) {
       // killough 1/19/98: improved error message:
       lprintf(LO_WARN, "V_DrawMemPatch8: Patch (%d,%d)-(%d,%d) exceeds LFB in vertical direction (horizontal is clipped)\n"
               "Bad V_DrawMemPatch8 (flags=%u)", x, y, x+patch->width, y+patch->height, flags);
@@ -295,7 +310,7 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
 
       if (x < 0)
         continue;
-      if (x >= SCREENWIDTH)
+      if (x >= screenwidth)
         break;
 
       // step through the posts in a column
@@ -365,10 +380,10 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
     int   col;
     int   w = (patch->width << 16) - 1; // CPhipps - -1 for faster flipping
     int   left, right, top, bottom;
-    int   DX  = (SCREENWIDTH<<16)  / 320;
-    int   DXI = (320<<16)          / SCREENWIDTH;
-    int   DY  = (SCREENHEIGHT<<16) / 200;
-    int   DYI = (200<<16)          / SCREENHEIGHT;
+    int   DX  = (screenwidth<<16)  / 320;
+    int   DXI = (320<<16)          / screenwidth;
+    int   DY  = (screenheight<<16) / 200;
+    int   DYI = (200<<16)          / screenheight;
     R_DrawColumn_f colfunc;
     draw_column_vars_t dcvars;
     draw_vars_t olddrawvars = drawvars;
@@ -427,7 +442,7 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
       // ignore this column if it's to the left of our clampRect
       if (dcvars.x < 0)
         continue;
-      if (dcvars.x >= SCREENWIDTH)
+      if (dcvars.x >= screenwidth)
         break;
 
       dcvars.texu = ((flags & VPT_FLIP) ? ((patch->width<<FRACBITS)-col) : col) % (patch->width<<FRACBITS);
@@ -443,15 +458,15 @@ static void V_DrawMemPatch(int x, int y, int scrn, const rpatch_t *patch,
 
         if ((dcvars.yh < 0) || (dcvars.yh < top))
           continue;
-        if ((dcvars.yl >= SCREENHEIGHT) || (dcvars.yl >= bottom))
+        if ((dcvars.yl >= screenheight) || (dcvars.yl >= bottom))
           continue;
 
         if (dcvars.yh >= bottom) {
           dcvars.yh = bottom-1;
           dcvars.edgeslope &= ~RDRAW_EDGESLOPE_BOT_MASK;
         }
-        if (dcvars.yh >= SCREENHEIGHT) {
-          dcvars.yh = SCREENHEIGHT-1;
+        if (dcvars.yh >= screenheight) {
+          dcvars.yh = screenheight-1;
           dcvars.edgeslope &= ~RDRAW_EDGESLOPE_BOT_MASK;
         }
 
@@ -989,7 +1004,7 @@ static void WRAP_V_DrawLine(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) V_PlotPixel(0,xx,yy,(byte)cc)
+#define PUTDOT(xx,yy,cc) V_PlotPixel(SCR_BOTTOM,xx,yy,(byte)cc)
 
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);

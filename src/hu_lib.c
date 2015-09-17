@@ -90,6 +90,7 @@ void HUlib_initTextLine(hu_textline_t* t, int x, int y,
 {
   t->x = x;
   t->y = y;
+  t->scr = FG;
   t->f = f;
   t->sc = sc;
   t->cm = cm;
@@ -187,7 +188,7 @@ void HUlib_drawTextLine
         break;
       // killough 1/18/98 -- support multiple lines:
       // CPhipps - patch drawing updated
-      V_DrawNumPatch(x, y, FG, l->f[c - l->sc].lumpnum, l->cm, VPT_TRANS | VPT_STRETCH);
+      V_DrawNumPatch(x, y, l->scr, l->f[c - l->sc].lumpnum, l->cm, VPT_TRANS | VPT_STRETCH);
       x += w;
     }
     else
@@ -222,11 +223,11 @@ void HUlib_eraseTextLine(hu_textline_t* l)
   int lh;
   int y;
 
-  // Only erases when NOT in automap and the screen is reduced,
+  // Only erases when the screen is reduced,
   // and the text must either need updating or refreshing
   // (because of a recent change back from the automap)
 
-  if (!(automapmode & am_active) && viewwindowx && l->needsupdate)
+  if (viewwindowx && l->needsupdate)
   {
     lh = l->f[0].height + 1;
     for (y=l->y; y<l->y+lh ; y++)
@@ -572,11 +573,11 @@ static void HUlib_eraseMBg(hu_mtext_t* m)
   int     lh;
   int     y;
 
-  // Only erases when NOT in automap and the screen is reduced,
+  // Only erases when the screen is reduced,
   // and the text must either need updating or refreshing
   // (because of a recent change back from the automap)
 
-  if (!(automapmode & am_active) && viewwindowx)
+  if (viewwindowx)
   {
     lh = m->l[0].f[0].height + 1;
     for (y=m->y; y<m->y+lh*(hud_msg_lines+2) ; y++)

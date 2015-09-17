@@ -96,7 +96,7 @@ int lprintf(OutputLevels pri, const char *s, ...)
     I_ConPrintString(msg);
 #endif
   }
-  if (lvl&cons_error_mask)
+  if (showconsole && lvl&cons_error_mask)
     r=fprintf(stderr,"%s",msg);           /* select output at console */
 
   return r;

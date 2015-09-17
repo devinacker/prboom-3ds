@@ -41,6 +41,8 @@
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
 #include "f_finale.h" // CPhipps - hmm...
 
+#define FB SCR_FRONT_L
+
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
 static int finalestage; // cph -
@@ -272,7 +274,7 @@ extern patchnum_t hu_font[HU_FONTSIZE];
 
 static void F_TextWrite (void)
 {
-  V_DrawBackground(finaleflat, 0);
+  V_DrawBackground(finaleflat, SCR_FRONT_L);
   { // draw some of the text onto the screen
     int         cx = 10;
     int         cy = 10;
@@ -304,7 +306,7 @@ static void F_TextWrite (void)
       if (cx+w > SCREENWIDTH)
   break;
       // CPhipps - patch drawing updated
-      V_DrawNumPatch(cx, cy, 0, hu_font[c].lumpnum, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNumPatch(cx, cy, FB, hu_font[c].lumpnum, CR_DEFAULT, VPT_STRETCH);
       cx+=w;
     }
   }
@@ -547,7 +549,7 @@ static void F_CastPrint (const char* text) // CPhipps - static, const char*
 
     w = hu_font[c].width;
     // CPhipps - patch drawing updated
-    V_DrawNumPatch(cx, 180, 0, hu_font[c].lumpnum, CR_DEFAULT, VPT_STRETCH);
+    V_DrawNumPatch(cx, 180, FB, hu_font[c].lumpnum, CR_DEFAULT, VPT_STRETCH);
     cx+=w;
   }
 }
@@ -566,7 +568,7 @@ void F_CastDrawer (void)
 
   // erase the entire screen to a background
   // CPhipps - patch drawing updated
-  V_DrawNamePatch(0,0,0, bgcastcall, CR_DEFAULT, VPT_STRETCH); // Ty 03/30/98 bg texture extern
+  V_DrawNamePatch(0,0,FB, bgcastcall, CR_DEFAULT, VPT_STRETCH); // Ty 03/30/98 bg texture extern
 
   F_CastPrint (*(castorder[castnum].name));
 
@@ -577,7 +579,7 @@ void F_CastDrawer (void)
   flip = (boolean)sprframe->flip[0];
 
   // CPhipps - patch drawing updated
-  V_DrawNumPatch(160, 170, 0, lump+firstspritelump, CR_DEFAULT,
+  V_DrawNumPatch(160, 170, FB, lump+firstspritelump, CR_DEFAULT,
      VPT_STRETCH | (flip ? VPT_FLIP : 0));
 }
 
@@ -596,12 +598,12 @@ static void F_BunnyScroll (void)
   {
     int scrolled = 320 - (finalecount-230)/2;
     if (scrolled <= 0) {
-      V_DrawNamePatch(0, 0, 0, pfub2, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNamePatch(0, 0, FB, pfub2, CR_DEFAULT, VPT_STRETCH);
     } else if (scrolled >= 320) {
-      V_DrawNamePatch(0, 0, 0, pfub1, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNamePatch(0, 0, FB, pfub1, CR_DEFAULT, VPT_STRETCH);
     } else {
-      V_DrawNamePatch(320-scrolled, 0, 0, pfub1, CR_DEFAULT, VPT_STRETCH);
-      V_DrawNamePatch(-scrolled, 0, 0, pfub2, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNamePatch(320-scrolled, 0, FB, pfub1, CR_DEFAULT, VPT_STRETCH);
+      V_DrawNamePatch(-scrolled, 0, FB, pfub2, CR_DEFAULT, VPT_STRETCH);
     }
   }
 
@@ -610,7 +612,7 @@ static void F_BunnyScroll (void)
   if (finalecount < 1180)
   {
     // CPhipps - patch drawing updated
-    V_DrawNamePatch((320-13*8)/2, (200-8*8)/2,0, "END0", CR_DEFAULT, VPT_STRETCH);
+    V_DrawNamePatch((320-13*8)/2, (200-8*8)/2,FB, "END0", CR_DEFAULT, VPT_STRETCH);
     laststage = 0;
     return;
   }
@@ -626,7 +628,7 @@ static void F_BunnyScroll (void)
 
   sprintf (name,"END%i",stage);
   // CPhipps - patch drawing updated
-  V_DrawNamePatch((320-13*8)/2, (200-8*8)/2, 0, name, CR_DEFAULT, VPT_STRETCH);
+  V_DrawNamePatch((320-13*8)/2, (200-8*8)/2, FB, name, CR_DEFAULT, VPT_STRETCH);
 }
 
 
@@ -650,18 +652,18 @@ void F_Drawer (void)
       // CPhipps - patch drawing updated
       case 1:
            if ( gamemode == retail )
-             V_DrawNamePatch(0, 0, 0, "CREDIT", CR_DEFAULT, VPT_STRETCH);
+             V_DrawNamePatch(0, 0, FB, "CREDIT", CR_DEFAULT, VPT_STRETCH);
            else
-             V_DrawNamePatch(0, 0, 0, "HELP2", CR_DEFAULT, VPT_STRETCH);
+             V_DrawNamePatch(0, 0, FB, "HELP2", CR_DEFAULT, VPT_STRETCH);
            break;
       case 2:
-           V_DrawNamePatch(0, 0, 0, "VICTORY2", CR_DEFAULT, VPT_STRETCH);
+           V_DrawNamePatch(0, 0, FB, "VICTORY2", CR_DEFAULT, VPT_STRETCH);
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawNamePatch(0, 0, 0, "ENDPIC", CR_DEFAULT, VPT_STRETCH);
+           V_DrawNamePatch(0, 0, FB, "ENDPIC", CR_DEFAULT, VPT_STRETCH);
            break;
     }
   }

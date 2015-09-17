@@ -597,7 +597,8 @@ void R_RenderPlayerView (player_t* player)
     if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       unsigned char color=(gametic % 20) < 9 ? 0xb0 : 0;
-      V_FillRect(0, viewwindowx, viewwindowy, viewwidth, viewheight, color);
+      V_FillRect(SCR_FRONT_L, viewwindowx, viewwindowy, viewwidth, viewheight, color);
+      V_FillRect(SCR_FRONT_R, viewwindowx, viewwindowy, viewwidth, viewheight, color);
       R_DrawViewBorder();
     }
   }

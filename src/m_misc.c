@@ -508,9 +508,9 @@ default_t defaults[] =
   {"key_chatplayer4", {&destination_keys[3]}, {0}            ,
    0,MAX_KEY,def_key,ss_keys}, // key to chat with player 4
   
-  {"key_weaponcycleup",{&key_weaponcycleup},    {KEYD_DUP}            ,
+  {"key_weaponcycleup",{&key_weaponcycleup},    {KEYD_DRIGHT}            ,
    0,MAX_KEY,def_key,ss_keys}, // key to cycle to next weapon
-  {"key_weaponcycledown",{&key_weaponcycledown},    {KEYD_DDOWN}            ,
+  {"key_weaponcycledown",{&key_weaponcycledown},    {KEYD_DLEFT}            ,
    0,MAX_KEY,def_key,ss_keys}, // key to cycle to next weapon  
  
   {"key_weapontoggle",{&key_weapontoggle},    {KEYD_ZL}            ,

@@ -233,6 +233,9 @@ void D_Display (void)
       break;
     }
 
+    // wipe bottom screen
+	V_FillRect(SCR_BOTTOM, 0, 0, 320, SCREENHEIGHT, (byte)mapcolor_back);
+
     switch (gamestate) {
     case GS_INTERMISSION:
       WI_Drawer();
@@ -257,8 +260,8 @@ void D_Display (void)
     }
 
     // Work out if the player view is visible, and if there is a border
-    viewactive = (!(automapmode & am_active) || (automapmode & am_overlay)) && !inhelpscreens;
-    isborder = viewactive ? (viewheight != SCREENHEIGHT) : (!inhelpscreens && (automapmode & am_active));
+    viewactive = !inhelpscreens;
+    isborder = viewactive ? (viewheight != SCREENHEIGHT) : !inhelpscreens;
 
     if (oldgamestate != GS_LEVEL) {
       R_FillBackScreen ();    // draw the pattern into the back screen
@@ -278,9 +281,9 @@ void D_Display (void)
     // Now do the drawing
     if (viewactive)
       R_RenderPlayerView (&players[displayplayer]);
-    if (automapmode & am_active)
-      AM_Drawer();
-    ST_Drawer((viewheight != SCREENHEIGHT) || ((automapmode & am_active) && !(automapmode & am_overlay)), redrawborderstuff);
+    
+	AM_Drawer();
+    ST_Drawer((viewheight != SCREENHEIGHT) || !(automapmode & am_overlay), redrawborderstuff);
     if (V_GetMode() != VID_MODEGL)
       R_DrawViewBorder();
     HU_Drawer();
@@ -294,7 +297,9 @@ void D_Display (void)
   if (paused) {
     // Simplified the "logic" here and no need for x-coord caching - POPE
     V_DrawNamePatch((320 - V_NamePatchWidth("M_PAUSE"))/2, 4,
-                    0, "M_PAUSE", CR_DEFAULT, VPT_STRETCH);
+                    SCR_FRONT_L, "M_PAUSE", CR_DEFAULT, VPT_STRETCH);
+    V_DrawNamePatch((320 - V_NamePatchWidth("M_PAUSE"))/2, 4,
+                    SCR_FRONT_R, "M_PAUSE", CR_DEFAULT, VPT_STRETCH);
   }
 
   // menus go directly to the screen
@@ -413,7 +418,8 @@ static void D_PageDrawer(void)
   // proff - added M_DrawCredits
   if (pagename)
   {
-    V_DrawNamePatch(0, 0, 0, pagename, CR_DEFAULT, VPT_STRETCH);
+    V_DrawNamePatch(0, 0, SCR_FRONT_L, pagename, CR_DEFAULT, VPT_STRETCH);
+    V_DrawNamePatch(0, 0, SCR_FRONT_R, pagename, CR_DEFAULT, VPT_STRETCH);
   }
   else
     M_DrawCredits();
