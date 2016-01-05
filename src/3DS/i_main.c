@@ -318,7 +318,8 @@ int main(int argc, char **argv)
 {
   srvInit();
   aptInit();
-  hidInit(0);
+  hidInit();
+  osSetSpeedupEnable(true);
   
   gfxInitDefault();
 
