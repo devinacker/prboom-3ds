@@ -80,9 +80,6 @@ static int SAMPLECOUNT=   512;
 // MWM 2000-01-08: Sample rate in samples/second
 int snd_samplerate=11025;
 
-// The actual output device.
-int audio_fd;
-
 typedef struct {
   // SFX id of the playing sound effect.
   // Used to catch duplicates (like chainsaw).
@@ -113,6 +110,9 @@ int   steptable[256];
 
 // Volume lookups.
 int   vol_lookup[128*256];
+
+// NDSP wave buffer struct
+ndspWaveBuf dsp_buf;
 
 /* cph
  * stopchan
@@ -190,10 +190,10 @@ static void updateSoundParams(int handle, int volume, int seperation, int pitch)
 
     // Sanity check, clamp volume.
     if (rightvol < 0 || rightvol > 127)
-  I_Error("rightvol out of bounds");
+      I_Error("rightvol out of bounds");
 
     if (leftvol < 0 || leftvol > 127)
-  I_Error("leftvol out of bounds");
+      I_Error("leftvol out of bounds");
 
     // Get the proper lookup table piece
     //  for this volume level???
@@ -203,11 +203,7 @@ static void updateSoundParams(int handle, int volume, int seperation, int pitch)
 
 void I_UpdateSoundParams(int handle, int volume, int seperation, int pitch)
 {
-  /* TODO for 3DS
-  SDL_LockAudio();
   updateSoundParams(handle, volume, seperation, pitch);
-  SDL_UnlockAudio();
-  */
 }
 
 //
@@ -307,17 +303,11 @@ int I_StartSound(int id, int channel, int vol, int sep, int pitch, int priority)
   // use locking which makes sure the sound data is in a malloced area and
   // not in a memory mapped one
 
-  /* TODO for 3DS
   data = W_LockLumpNum(lump);
-
-  SDL_LockAudio();
 
   // Returns a handle (not used).
   addsfx(id, channel, data, len);
   updateSoundParams(channel, vol, sep, pitch);
-
-  SDL_UnlockAudio();
-  */
 
   return channel;
 }
@@ -330,11 +320,7 @@ void I_StopSound (int handle)
   if ((handle < 0) || (handle >= MAX_CHANNELS))
     I_Error("I_StopSound: handle out of range");
 #endif
-  /* TODO for 3DS
-  SDL_LockAudio();
   stopchan(handle);
-  SDL_UnlockAudio();
-  */
 }
 
 
@@ -372,154 +358,156 @@ boolean I_AnySoundStillPlaying(void)
 // This function currently supports only 16bit.
 //
 
-/* TODO for 3DS
-static void I_UpdateSound(void *unused, Uint8 *stream, int len)
+static void I_UpdateSound(void *stream)
 {
+  if (!sound_inited) return;
+
+  static unsigned sample_start = 0;
+  unsigned sample_end = ndspChnGetSamplePos(0);
+
   // Mix current sound data.
   // Data, from raw sound, for right and left.
   register unsigned char sample;
   register int    dl;
   register int    dr;
 
-  // Pointers in audio stream, left, right, end.
+  // Pointers in audio stream, left, right.
   signed short*   leftout;
   signed short*   rightout;
-  signed short*   leftend;
-  // Step in stream, left and right, thus two.
-  int       step;
 
   // Mixing channel index.
   int       chan;
 
-    // Left and right channel
-    //  are in audio stream, alternating.
-    leftout = (signed short *)stream;
-    rightout = ((signed short *)stream)+1;
-    step = 2;
-
-    // Determine end, for left channel only
-    //  (right channel is implicit).
-    leftend = leftout + (len/4)*step;
-
     // Mix sounds into the mixing buffer.
     // Loop over step*SAMPLECOUNT,
     //  that is 512 values for two channels.
-    while (leftout != leftend)
+    while (sample_start != sample_end)
     {
-  // Reset left/right value.
-  //dl = 0;
-  //dr = 0;
-  dl = *leftout;
-  dr = *rightout;
+      // Left and right channel
+      //  are in audio stream, alternating.
+	  leftout = ((signed short *)stream) + 2*sample_start;
+      rightout = ((signed short *)stream) + 2*sample_start + 1;
+	
+	  // Reset left/right value.
+	  dl = 0;
+	  dr = 0;
+	  
+	  // Love thy L2 chache - made this a loop.
+	  // Now more channels could be set at compile time
+	  //  as well. Thus loop those  channels.
+		for ( chan = 0; chan < numChannels; chan++ )
+	  {
+		  // Check channel, if active.
+		  if (channelinfo[chan].data)
+		  {
+		// Get the raw data from the channel.
+			// no filtering
+			sample = *channelinfo[chan].data;
+			// linear filtering
+			// sample = (((unsigned int)channelinfo[chan].data[0] * (0x10000 - channelinfo[chan].stepremainder))
+			//        + ((unsigned int)channelinfo[chan].data[1] * (channelinfo[chan].stepremainder))) >> 16;
 
-  // Love thy L2 chache - made this a loop.
-  // Now more channels could be set at compile time
-  //  as well. Thus loop those  channels.
-    for ( chan = 0; chan < numChannels; chan++ )
-  {
-      // Check channel, if active.
-      if (channelinfo[chan].data)
-      {
-    // Get the raw data from the channel.
-        // no filtering
-        // sample = *channelinfo[chan].data;
-        // linear filtering
-        sample = (((unsigned int)channelinfo[chan].data[0] * (0x10000 - channelinfo[chan].stepremainder))
-                + ((unsigned int)channelinfo[chan].data[1] * (channelinfo[chan].stepremainder))) >> 16;
+		// Add left and right part
+		//  for this channel (sound)
+		//  to the current data.
+		// Adjust volume accordingly.
+			dl += channelinfo[chan].leftvol_lookup[sample];
+			dr += channelinfo[chan].rightvol_lookup[sample];
+		// Increment index ???
+			channelinfo[chan].stepremainder += channelinfo[chan].step;
+		// MSB is next sample???
+			channelinfo[chan].data += channelinfo[chan].stepremainder >> 16;
+		// Limit to LSB???
+			channelinfo[chan].stepremainder &= 0xffff;
 
-    // Add left and right part
-    //  for this channel (sound)
-    //  to the current data.
-    // Adjust volume accordingly.
-        dl += channelinfo[chan].leftvol_lookup[sample];
-        dr += channelinfo[chan].rightvol_lookup[sample];
-    // Increment index ???
-        channelinfo[chan].stepremainder += channelinfo[chan].step;
-    // MSB is next sample???
-        channelinfo[chan].data += channelinfo[chan].stepremainder >> 16;
-    // Limit to LSB???
-        channelinfo[chan].stepremainder &= 0xffff;
+		// Check whether we are done.
+			if (channelinfo[chan].data >= channelinfo[chan].enddata)
+			  stopchan(chan);
+		  }
+	  }
 
-    // Check whether we are done.
-        if (channelinfo[chan].data >= channelinfo[chan].enddata)
-      stopchan(chan);
-      }
-  }
+	  // Clamp to range. Left hardware channel.
+	  // Has been char instead of short.
+	  // if (dl > 127) *leftout = 127;
+	  // else if (dl < -128) *leftout = -128;
+	  // else *leftout = dl;
 
-  // Clamp to range. Left hardware channel.
-  // Has been char instead of short.
-  // if (dl > 127) *leftout = 127;
-  // else if (dl < -128) *leftout = -128;
-  // else *leftout = dl;
+	  if (dl > SHRT_MAX)
+		  *leftout = SHRT_MAX;
+	  else if (dl < SHRT_MIN)
+		  *leftout = SHRT_MIN;
+	  else
+		  *leftout = (signed short)dl;
 
-  if (dl > SHRT_MAX)
-      *leftout = SHRT_MAX;
-  else if (dl < SHRT_MIN)
-      *leftout = SHRT_MIN;
-  else
-      *leftout = (signed short)dl;
+	  // Same for right hardware channel.
+	  if (dr > SHRT_MAX)
+		  *rightout = SHRT_MAX;
+	  else if (dr < SHRT_MIN)
+		  *rightout = SHRT_MIN;
+	  else
+		  *rightout = (signed short)dr;
 
-  // Same for right hardware channel.
-  if (dr > SHRT_MAX)
-      *rightout = SHRT_MAX;
-  else if (dr < SHRT_MIN)
-      *rightout = SHRT_MIN;
-  else
-      *rightout = (signed short)dr;
-
-  // Increment current pointers in stream
-  leftout += step;
-  rightout += step;
+	  // Increment current pointers in stream
+	  sample_start++;
+	  sample_start %= SAMPLECOUNT;
     }
 }
-*/
 
 void I_ShutdownSound(void)
 {
   if (sound_inited) {
-    lprintf(LO_INFO, "I_ShutdownSound: ");
-    /* TODO for 3DS */
-    lprintf(LO_INFO, "\n");
     sound_inited = false;
+	ndspChnWaveBufClear(0);
+	linearFree(dsp_buf.data_pcm16);
+	ndspExit();
   }
 }
 
 void I_InitSound(void)
 {
-
-  /* TODO for 3DS
   // Secure and configure sound device first.
   lprintf(LO_INFO,"I_InitSound: ");
 
-  // Open the audio device
-  audio.freq = snd_samplerate;
-#if ( SDL_BYTEORDER == SDL_BIG_ENDIAN )
-  audio.format = AUDIO_S16MSB;
-#else
-  audio.format = AUDIO_S16LSB;
-#endif
-  audio.channels = 2;
-  audio.samples = SAMPLECOUNT*snd_samplerate/11025;
-  audio.callback = I_UpdateSound;
-  if ( SDL_OpenAudio(&audio, NULL) < 0 ) {
-    lprintf(LO_INFO,"couldn't open audio with desired format\n");
-    return;
+  if (ndspInit() < 0) {
+    lprintf(LO_INFO,"couldn't initialize NDSP\n");
+	return;
   }
-  SAMPLECOUNT = audio.samples;
+  
+  // set up the NDSP channel (this part mostly lifted from retroarch)
+  ndspChnInitParams(0);
+  ndspSetOutputMode(NDSP_OUTPUT_STEREO);
+  ndspSetOutputCount(1);
+  ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+  ndspChnSetInterp(0, NDSP_INTERP_NONE);
+  ndspChnSetRate(0, (float)snd_samplerate);
+  ndspChnWaveBufClear(0);
+  
+  dsp_buf.data_pcm16 = linearAlloc(4*SAMPLECOUNT);
+  memset(dsp_buf.data_pcm16, 0, 4*SAMPLECOUNT);
+  DSP_FlushDataCache(dsp_buf.data_pcm16, 4*SAMPLECOUNT);
+  
+  ndspSetCallback(I_UpdateSound, (void*)dsp_buf.data_pcm16);
+  
+  dsp_buf.looping = true;
+  dsp_buf.nsamples = SAMPLECOUNT;
+  
+  ndspChnWaveBufAdd(0, &dsp_buf);
+  
   lprintf(LO_INFO," configured audio device with %d samples/slice\n", SAMPLECOUNT);
-#endif
 
   if (first_sound_init) {
     atexit(I_ShutdownSound);
     first_sound_init = false;
   }
 
+  ndspSetMasterVol(1.0);
+
   if (!nomusicparm)
     I_InitMusic();
 
   // Finished initialization.
+  sound_inited = true;
   lprintf(LO_INFO,"I_InitSound: sound module ready\n");
-  */
 }
 
 

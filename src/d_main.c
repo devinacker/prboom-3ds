@@ -384,9 +384,11 @@ static void D_DoomLoop(void)
 
       // CPhipps - auto screenshot
       if (auto_shot_fname && !--auto_shot_count) {
-  auto_shot_count = auto_shot_time;
-  M_DoScreenShot(auto_shot_fname);
+          auto_shot_count = auto_shot_time;
+          M_DoScreenShot(auto_shot_fname);
       }
+	  
+	  I_uSleep(1);
     }
 }
 
