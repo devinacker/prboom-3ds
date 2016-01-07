@@ -451,6 +451,8 @@ static void I_UpdateSound(void *stream)
 	  sample_start++;
 	  sample_start %= SAMPLECOUNT;
     }
+	
+	DSP_FlushDataCache(stream, 4*SAMPLECOUNT);
 }
 
 void I_ShutdownSound(void)
