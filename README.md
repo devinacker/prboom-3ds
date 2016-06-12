@@ -1,8 +1,10 @@
 # prboom-3ds
 
-This is a preliminary (but playable) port of the Doom engine to the Nintendo 3DS. It is based on PrBoom v2.5.0.
+## NOTE: This is a formerly in-development 3DS Doom port which has no relation to any other similar ports to the same platform. It was being developed primarily for my own entertainment, and has since been supplanted by other ports made by active members of the 3DS homebrew community.
 
-It is unrelated to [prboom3ds](https://github.com/elhobbs/prboom3ds) by elhobbs and will probably be given a more original name later.
+## This is not an actively developed or maintained project, and is unlikely to become one.
+
+This is a preliminary (but playable) port of the Doom engine to the Nintendo 3DS. It is based on PrBoom v2.5.0.
 
 ## How to run
 
